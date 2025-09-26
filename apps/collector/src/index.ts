@@ -16,8 +16,6 @@ const db = new Client({
 });
 
 const EventSchema = z.object({
-  id: z.string(),
-  ts: z.string(),
   api_key: z.string(),
   method: z.string(),
   path: z.string(),
@@ -49,23 +47,23 @@ app
 
       const { id: project_id, org_id } = project.rows[0];
 
-      await axios.post(
-        TB_URL,
-        parsed.map((e) => ({
-          ...e,
-          org_id,
-          project_id,
-          body: e.body ? JSON.stringify(e.body) : null,
-        })),
-        {
-          headers: {
-            Authorization: `Bearer ${TB_TOKEN}`,
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      const enriched = parsed.map((e) => ({
+        ...e,
+        id: crypto.randomUUID(),
+        ts: new Date().toISOString(),
+        org_id,
+        project_id,
+        body: e.body ? JSON.stringify(e.body) : null,
+      }));
 
-      return { success: true };
+      await axios.post(TB_URL, enriched, {
+        headers: {
+          Authorization: `Bearer ${TB_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      return { success: true, count: enriched.length };
     } catch (err: any) {
       console.error("Ingest error", err);
       set.status = 400;
