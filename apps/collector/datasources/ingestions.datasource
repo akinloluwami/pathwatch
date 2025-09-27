@@ -1,0 +1,30 @@
+SCHEMA >
+    id String `json:$.id`,
+    timestamp DateTime `json:$.timestamp`,
+    org_id String `json:$.org_id`,
+    project_id String `json:$.project_id`,
+    method String `json:$.method`,
+    path String `json:$.path`,
+    status Int32 `json:$.status`,
+    latency_ms Int32 `json:$.latency_ms`,
+    req_size Int32 `json:$.req_size`,
+    res_size Int32 `json:$.res_size`,
+    ip Nullable(String) `json:$.ip`,
+    user_agent Nullable(String) `json:$.user_agent`,
+    body Nullable(String) `json:$.body`
+
+FORWARD_QUERY >
+  SELECT
+    id,
+    timestamp,
+    org_id,
+    project_id,
+    method,
+    path,
+    status,
+    latency_ms,
+    req_size,
+    res_size,
+    CAST(ip, 'Nullable(String)') AS ip,
+    CAST(user_agent, 'Nullable(String)') AS user_agent,
+    CAST(body, 'Nullable(String)') AS body
