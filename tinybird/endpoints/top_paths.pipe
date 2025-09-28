@@ -1,0 +1,23 @@
+DESCRIPTION >
+    Query endpoint for top_paths
+
+NODE top_paths_data
+SQL >
+    %
+    SELECT
+      org_id,
+      project_id,
+      path,
+      count() AS request_count
+    FROM ingestions
+    {% if defined(org_id) %}
+      WHERE org_id = {{String(org_id)}}
+    {% end %}
+    {% if defined(project_id) %}
+      AND project_id = {{String(project_id)}}
+    {% end %}
+    GROUP BY org_id, project_id, path
+    ORDER BY request_count DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint

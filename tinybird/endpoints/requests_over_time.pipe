@@ -1,0 +1,37 @@
+DESCRIPTION >
+    Query endpoint for requests_over_time
+
+NODE requests_over_time_data
+SQL >
+    %
+    SELECT
+      org_id,
+      project_id,
+      {% if interval == "1m" %}
+        toStartOfMinute(timestamp) AS period,
+      {% elif interval == "5m" %}
+        toStartOfFiveMinute(timestamp) AS period,
+      {% elif interval == "15m" %}
+        toStartOfFifteenMinutes(timestamp) AS period,
+      {% elif interval == "1h" %}
+        toStartOfHour(timestamp) AS period,
+      {% elif interval == "1d" %}
+        toDate(timestamp) AS period,
+      {% elif interval == "1w" %}
+        toStartOfWeek(timestamp) AS period,
+      {% else %}
+        toDate(timestamp) AS period,
+      {% end %}
+      count() AS request_count
+    FROM ingestions
+    {% if defined(org_id) %}
+      WHERE org_id = {{String(org_id)}}
+    {% end %}
+    {% if defined(project_id) %}
+      AND project_id = {{String(project_id)}}
+    {% end %}
+    GROUP BY org_id, project_id, period
+    ORDER BY period DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint

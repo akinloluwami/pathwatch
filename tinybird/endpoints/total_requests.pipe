@@ -1,0 +1,22 @@
+DESCRIPTION >
+    Query endpoint for total_requests
+
+NODE total_requests_data
+SQL >
+    %
+    SELECT
+      org_id,
+      project_id,
+      count() AS total_requests
+    FROM ingestions
+    {% if defined(org_id) %}
+      WHERE org_id = {{String(org_id)}}
+    {% end %}
+    {% if defined(project_id) %}
+      AND project_id = {{String(project_id)}}
+    {% end %}
+    GROUP BY org_id, project_id
+    ORDER BY total_requests DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint

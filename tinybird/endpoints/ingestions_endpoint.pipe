@@ -1,0 +1,45 @@
+DESCRIPTION >
+    Query endpoint for ingestions data
+
+NODE ingestions_data
+SQL >
+    %
+    SELECT 
+        id,
+        timestamp,
+        org_id,
+        project_id,
+        method,
+        path,
+        url,
+        status,
+        latency_ms,
+        req_size,
+        res_size,
+        ip,
+        user_agent,
+        body
+    FROM ingestions
+    WHERE 1=1
+    {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+    {% end %}
+    {% if defined(project_id) %}
+        AND project_id = {{String(project_id)}}
+    {% end %}
+    {% if defined(method) %}
+        AND method = {{String(method)}}
+    {% end %}
+    {% if defined(status) %}
+        AND status = {{Int32(status)}}
+    {% end %}
+    {% if defined(start_date) %}
+        AND timestamp >= {{DateTime(start_date)}}
+    {% end %}
+    {% if defined(end_date) %}
+        AND timestamp <= {{DateTime(end_date)}}
+    {% end %}
+    ORDER BY timestamp DESC
+    LIMIT {{Int32(limit, 100)}}
+
+TYPE endpoint
