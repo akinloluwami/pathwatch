@@ -1,0 +1,7 @@
+
+include:
+  - local: .gitlab/tinybird/*.yml
+
+stages:
+  - tests
+  - deploy

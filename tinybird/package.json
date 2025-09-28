@@ -7,9 +7,11 @@
     "deploy:watch": "tsx watch scripts/deployPipes.ts"
   },
   "dependencies": {
+    "dotenv": "^17.2.2",
     "node-fetch": "^2.7.0"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@types/node": "^20.0.0",
     "@types/node-fetch": "^2.6.13",
     "tsx": "^4.7.0",

@@ -1,0 +1,17 @@
+
+tinybird_cd_workflow:
+  image: ubuntu:latest
+  stage: deploy
+  resource_group: production
+  needs: []
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - .gitlab/tinybird/*
+  before_script:
+    - apt update && apt install -y curl
+    - curl https://tinybird.co | sh
+  script:
+    - export PATH="$HOME/.local/bin:$PATH"
+    - cd $CI_PROJECT_DIR/.
+    - tb --cloud --host "$TINYBIRD_HOST" --token "$TINYBIRD_TOKEN" deploy
