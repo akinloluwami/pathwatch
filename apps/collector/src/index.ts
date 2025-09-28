@@ -22,6 +22,7 @@ const EventSchema = z.object({
   api_key: z.string(),
   method: z.string(),
   path: z.string(),
+  url: z.string().optional(),
   status: z.number(),
   latency_ms: z.number(),
   req_size: z.number(),
@@ -40,17 +41,16 @@ app
       const apiKey = parsed[0].api_key;
 
       const project = await db.query(
-        `SELECT id, org_id FROM projects WHERE api_key = $1`,
-        [apiKey]
+        `SELECT id, org_id, log_full_url FROM projects WHERE api_key = $1`,
+        [apiKey],
       );
       if (!project.rows.length) {
         set.status = 403;
         return { success: false, error: "Invalid API key" };
       }
 
-      const { id: project_id, org_id } = project.rows[0];
+      const { id: project_id, org_id, log_full_url } = project.rows[0];
 
-      // Use ISO8601 for timestamp, ensure all fields are present, and send null for missing optional string fields
       const enriched = parsed.map((e) => {
         const event = {
           id: crypto.randomUUID(),
@@ -59,6 +59,7 @@ app
           project_id: String(project_id),
           method: String(e.method),
           path: String(e.path),
+          url: log_full_url ? String(e.url) : null, // 👈 only if enabled
           status: Number(Math.round(e.status)),
           latency_ms: Number(Math.round(e.latency_ms)),
           req_size: Number(Math.round(e.req_size)),
@@ -72,65 +73,9 @@ app
             : null,
         };
 
-        // Return in exact schema order
-        return {
-          id: event.id,
-          timestamp: event.timestamp,
-          org_id: event.org_id,
-          project_id: event.project_id,
-          method: event.method,
-          path: event.path,
-          status: event.status,
-          latency_ms: event.latency_ms,
-          req_size: event.req_size,
-          res_size: event.res_size,
-          ip: event.ip,
-          user_agent: event.user_agent,
-          body: event.body,
-        };
+        return event;
       });
 
-      // Validate all required fields are present and non-null
-      const requiredFields = [
-        "id",
-        "timestamp",
-        "org_id",
-        "project_id",
-        "method",
-        "path",
-        "status",
-        "latency_ms",
-        "req_size",
-        "res_size",
-      ];
-      const optionalFields = ["ip", "user_agent", "body"];
-
-      enriched.forEach((event, idx) => {
-        const eventObj = event as Record<string, unknown>;
-
-        // Check required fields
-        requiredFields.forEach((field) => {
-          const value = eventObj[field];
-          if (
-            !(field in eventObj) ||
-            value === null ||
-            value === undefined ||
-            (typeof value === "string" && value.length === 0)
-          ) {
-            console.error(
-              `Event ${idx} missing or empty required field: ${field}`
-            );
-          }
-        });
-
-        // Check optional fields exist (can be null)
-        optionalFields.forEach((field) => {
-          if (!(field in eventObj)) {
-            console.error(`Event ${idx} missing optional field: ${field}`);
-          }
-        });
-      });
-      // Send each event individually to Tinybird
       for (const event of enriched) {
         await axios.post(TB_URL, event, {
           headers: {
@@ -147,11 +92,10 @@ app
       return { success: false, error: err.message };
     }
   })
-
   .get("/", () => "Hello Elysia");
 
 app.listen(6000, () => {
   console.log(
-    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+    `🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`,
   );
 });

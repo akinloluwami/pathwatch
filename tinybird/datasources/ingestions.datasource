@@ -5,6 +5,7 @@ SCHEMA >
     project_id String `json:$.project_id`,
     method String `json:$.method`,
     path String `json:$.path`,
+    url Nullable(String) `json:$.url`,
     status Int32 `json:$.status`,
     latency_ms Int32 `json:$.latency_ms`,
     req_size Int32 `json:$.req_size`,
@@ -12,6 +13,7 @@ SCHEMA >
     ip Nullable(String) `json:$.ip`,
     user_agent Nullable(String) `json:$.user_agent`,
     body Nullable(String) `json:$.body`
+
 
 FORWARD_QUERY >
   SELECT
@@ -21,6 +23,7 @@ FORWARD_QUERY >
     project_id,
     method,
     path,
+    defaultValueOfTypeName('Nullable(String)') AS url,
     status,
     latency_ms,
     req_size,
