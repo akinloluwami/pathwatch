@@ -1,0 +1,9 @@
+[workspace]
+name = "pathwatch"
+token = "${TB_TOKEN}"
+
+[datasources]
+"datasources/*.datasource"
+
+[endpoints]
+"endpoints/*.sql"

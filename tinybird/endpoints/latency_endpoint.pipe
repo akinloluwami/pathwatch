@@ -1,0 +1,16 @@
+DESCRIPTION >
+    Get latency metrics over time
+
+NODE latency_query
+SQL >
+    %
+    SELECT
+      date_trunc('minute', timestamp) AS bucket,
+      avg(latency_ms) AS avg_latency,
+      quantile(0.95)(latency_ms) AS p95_latency
+    FROM ingestions
+    GROUP BY bucket
+    ORDER BY bucket DESC
+    LIMIT 100
+
+TYPE ENDPOINT
