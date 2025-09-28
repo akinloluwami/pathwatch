@@ -1,0 +1,18 @@
+{
+  "name": "pathwatch-tinybird",
+  "version": "1.0.0",
+  "description": "Tinybird configuration and deployment scripts for PathWatch",
+  "scripts": {
+    "deploy": "tsx scripts/deployPipes.ts",
+    "deploy:watch": "tsx watch scripts/deployPipes.ts"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-fetch": "^2.6.13",
+    "tsx": "^4.7.0",
+    "typescript": "^5.0.0"
+  }
+}
