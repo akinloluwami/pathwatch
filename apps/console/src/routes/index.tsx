@@ -1,39 +1,21 @@
-import { createFileRoute } from '@tanstack/react-router'
-import logo from '../logo.svg'
+import { APP_NAME } from "@/constants";
+import { createFileRoute } from "@tanstack/react-router";
+import { SiGithub } from "react-icons/si";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: App,
-})
+});
 
 function App() {
   return (
-    <div className="text-center">
-      <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
-        <img
-          src={logo}
-          className="h-[40vmin] pointer-events-none animate-[spin_20s_linear_infinite]"
-          alt="logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <div className="flex flex-col gap-y-6 items-center">
+        <h1 className="text-4xl">Login to {APP_NAME}</h1>
+        <button className="bg-accent text-white rounded-full flex items-center p-2 gap-x-2 transition-shadow duration-200 hover:shadow-[0_0_16px_4px_rgba(244,88,23,0.6)]">
+          <SiGithub />
+          <span className="uppercase text-lg">Sign in with GitHub</span>
+        </button>
+      </div>
     </div>
-  )
+  );
 }

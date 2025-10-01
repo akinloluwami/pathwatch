@@ -15,10 +15,11 @@
     "@tanstack/react-router": "^1.132.0",
     "@tanstack/react-router-devtools": "^1.132.0",
     "@tanstack/react-router-ssr-query": "^1.131.7",
-    "@tanstack/react-start": "^1.132.0",
+    "@tanstack/react-start": "^1.132.24",
     "@tanstack/router-plugin": "^1.132.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
     "tailwindcss": "^4.0.6",
     "vite-tsconfig-paths": "^5.1.4"
   },
@@ -31,7 +32,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.2",
-    "vite": "^6.3.5",
+    "vite": "^7.1.7",
     "vitest": "^3.0.5",
     "web-vitals": "^4.2.4"
   }
