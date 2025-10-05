@@ -9,9 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as _authedRouteImport } from './routes/__authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
+import { Route as _authtedOrgRouteImport } from './routes/__authted/$org'
+import { Route as _authtedOrgIndexRouteImport } from './routes/__authted/$org/index'
+import { Route as _authtedOrgTelmentaryRouteImport } from './routes/__authted/$org/telmentary'
+import { Route as _authtedOrgProjectIdRouteImport } from './routes/__authted/$org/$projectId'
+import { Route as _authtedOrgTelmentaryProjectIdIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/index'
+import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes/__authted/$org/telmentary/$projectId/logs'
 
+const _authedRoute = _authedRouteImport.update({
+  id: '/__authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -22,35 +33,119 @@ const ApiDemoNamesRoute = ApiDemoNamesRouteImport.update({
   path: '/api/demo-names',
   getParentRoute: () => rootRouteImport,
 } as any)
+const _authtedOrgRoute = _authtedOrgRouteImport.update({
+  id: '/__authted/$org',
+  path: '/$org',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const _authtedOrgIndexRoute = _authtedOrgIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => _authtedOrgRoute,
+} as any)
+const _authtedOrgTelmentaryRoute = _authtedOrgTelmentaryRouteImport.update({
+  id: '/telmentary',
+  path: '/telmentary',
+  getParentRoute: () => _authtedOrgRoute,
+} as any)
+const _authtedOrgProjectIdRoute = _authtedOrgProjectIdRouteImport.update({
+  id: '/$projectId',
+  path: '/$projectId',
+  getParentRoute: () => _authtedOrgRoute,
+} as any)
+const _authtedOrgTelmentaryProjectIdIndexRoute =
+  _authtedOrgTelmentaryProjectIdIndexRouteImport.update({
+    id: '/$projectId/',
+    path: '/$projectId/',
+    getParentRoute: () => _authtedOrgTelmentaryRoute,
+  } as any)
+const _authtedOrgTelmentaryProjectIdLogsRoute =
+  _authtedOrgTelmentaryProjectIdLogsRouteImport.update({
+    id: '/$projectId/logs',
+    path: '/$projectId/logs',
+    getParentRoute: () => _authtedOrgTelmentaryRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/$org/$projectId': typeof _authtedOrgProjectIdRoute
+  '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
+  '/$org/': typeof _authtedOrgIndexRoute
+  '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
+  '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/$org/$projectId': typeof _authtedOrgProjectIdRoute
+  '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
+  '/$org': typeof _authtedOrgIndexRoute
+  '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
+  '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/__authed': typeof _authedRoute
+  '/__authted/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/__authted/$org/$projectId': typeof _authtedOrgProjectIdRoute
+  '/__authted/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
+  '/__authted/$org/': typeof _authtedOrgIndexRoute
+  '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
+  '/__authted/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/demo-names'
+  fullPaths:
+    | '/'
+    | '/$org'
+    | '/api/demo-names'
+    | '/$org/$projectId'
+    | '/$org/telmentary'
+    | '/$org/'
+    | '/$org/telmentary/$projectId/logs'
+    | '/$org/telmentary/$projectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/demo-names'
-  id: '__root__' | '/' | '/api/demo-names'
+  to:
+    | '/'
+    | '/api/demo-names'
+    | '/$org/$projectId'
+    | '/$org/telmentary'
+    | '/$org'
+    | '/$org/telmentary/$projectId/logs'
+    | '/$org/telmentary/$projectId'
+  id:
+    | '__root__'
+    | '/'
+    | '/__authed'
+    | '/__authted/$org'
+    | '/api/demo-names'
+    | '/__authted/$org/$projectId'
+    | '/__authted/$org/telmentary'
+    | '/__authted/$org/'
+    | '/__authted/$org/telmentary/$projectId/logs'
+    | '/__authted/$org/telmentary/$projectId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  _authedRoute: typeof _authedRoute
+  _authtedOrgRoute: typeof _authtedOrgRouteWithChildren
   ApiDemoNamesRoute: typeof ApiDemoNamesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/__authed': {
+      id: '/__authed'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof _authedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -65,11 +160,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDemoNamesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/__authted/$org': {
+      id: '/__authted/$org'
+      path: '/$org'
+      fullPath: '/$org'
+      preLoaderRoute: typeof _authtedOrgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__authted/$org/': {
+      id: '/__authted/$org/'
+      path: '/'
+      fullPath: '/$org/'
+      preLoaderRoute: typeof _authtedOrgIndexRouteImport
+      parentRoute: typeof _authtedOrgRoute
+    }
+    '/__authted/$org/telmentary': {
+      id: '/__authted/$org/telmentary'
+      path: '/telmentary'
+      fullPath: '/$org/telmentary'
+      preLoaderRoute: typeof _authtedOrgTelmentaryRouteImport
+      parentRoute: typeof _authtedOrgRoute
+    }
+    '/__authted/$org/$projectId': {
+      id: '/__authted/$org/$projectId'
+      path: '/$projectId'
+      fullPath: '/$org/$projectId'
+      preLoaderRoute: typeof _authtedOrgProjectIdRouteImport
+      parentRoute: typeof _authtedOrgRoute
+    }
+    '/__authted/$org/telmentary/$projectId/': {
+      id: '/__authted/$org/telmentary/$projectId/'
+      path: '/$projectId'
+      fullPath: '/$org/telmentary/$projectId'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdIndexRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryRoute
+    }
+    '/__authted/$org/telmentary/$projectId/logs': {
+      id: '/__authted/$org/telmentary/$projectId/logs'
+      path: '/$projectId/logs'
+      fullPath: '/$org/telmentary/$projectId/logs'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdLogsRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryRoute
+    }
   }
 }
 
+interface _authtedOrgTelmentaryRouteChildren {
+  _authtedOrgTelmentaryProjectIdLogsRoute: typeof _authtedOrgTelmentaryProjectIdLogsRoute
+  _authtedOrgTelmentaryProjectIdIndexRoute: typeof _authtedOrgTelmentaryProjectIdIndexRoute
+}
+
+const _authtedOrgTelmentaryRouteChildren: _authtedOrgTelmentaryRouteChildren = {
+  _authtedOrgTelmentaryProjectIdLogsRoute:
+    _authtedOrgTelmentaryProjectIdLogsRoute,
+  _authtedOrgTelmentaryProjectIdIndexRoute:
+    _authtedOrgTelmentaryProjectIdIndexRoute,
+}
+
+const _authtedOrgTelmentaryRouteWithChildren =
+  _authtedOrgTelmentaryRoute._addFileChildren(
+    _authtedOrgTelmentaryRouteChildren,
+  )
+
+interface _authtedOrgRouteChildren {
+  _authtedOrgProjectIdRoute: typeof _authtedOrgProjectIdRoute
+  _authtedOrgTelmentaryRoute: typeof _authtedOrgTelmentaryRouteWithChildren
+  _authtedOrgIndexRoute: typeof _authtedOrgIndexRoute
+}
+
+const _authtedOrgRouteChildren: _authtedOrgRouteChildren = {
+  _authtedOrgProjectIdRoute: _authtedOrgProjectIdRoute,
+  _authtedOrgTelmentaryRoute: _authtedOrgTelmentaryRouteWithChildren,
+  _authtedOrgIndexRoute: _authtedOrgIndexRoute,
+}
+
+const _authtedOrgRouteWithChildren = _authtedOrgRoute._addFileChildren(
+  _authtedOrgRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  _authedRoute: _authedRoute,
+  _authtedOrgRoute: _authtedOrgRouteWithChildren,
   ApiDemoNamesRoute: ApiDemoNamesRoute,
 }
 export const routeTree = rootRouteImport
