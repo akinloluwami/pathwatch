@@ -1,18 +1,19 @@
 SCHEMA >
-    id String `json:$.id`,
-    timestamp DateTime `json:$.timestamp`,
-    org_id String `json:$.org_id`,
-    project_id String `json:$.project_id`,
-    method String `json:$.method`,
-    path String `json:$.path`,
-    url Nullable(String) `json:$.url`,
-    status Int32 `json:$.status`,
-    latency_ms Int32 `json:$.latency_ms`,
-    req_size Int32 `json:$.req_size`,
-    res_size Int32 `json:$.res_size`,
-    ip Nullable(String) `json:$.ip`,
-    user_agent Nullable(String) `json:$.user_agent`,
-    body Nullable(String) `json:$.body`
+  id String `json:$.id`,
+  timestamp DateTime `json:$.timestamp`,
+  org_id String `json:$.org_id`,
+  project_id String `json:$.project_id`,
+  method String `json:$.method`,
+  path String `json:$.path`,
+  url Nullable(String) `json:$.url`,
+  host Nullable(String) `json:$.host`,
+  status Int32 `json:$.status`,
+  latency_ms Int32 `json:$.latency_ms`,
+  req_size Int32 `json:$.req_size`,
+  res_size Int32 `json:$.res_size`,
+  ip Nullable(String) `json:$.ip`,
+  user_agent Nullable(String) `json:$.user_agent`,
+  body Nullable(String) `json:$.body`
 
 
 FORWARD_QUERY >
@@ -24,6 +25,7 @@ FORWARD_QUERY >
     method,
     path,
     defaultValueOfTypeName('Nullable(String)') AS url,
+    defaultValueOfTypeName('Nullable(String)') AS host,
     status,
     latency_ms,
     req_size,
