@@ -23,6 +23,7 @@ const EventSchema = z.object({
   method: z.string(),
   path: z.string(),
   url: z.string().optional(),
+  host: z.string().optional(),
   status: z.number(),
   latency_ms: z.number(),
   req_size: z.number(),
@@ -60,6 +61,7 @@ app
           method: String(e.method),
           path: String(e.path),
           url: log_full_url ? String(e.url) : null, // 👈 only if enabled
+          host: e.host ? String(e.host) : null,
           status: Number(Math.round(e.status)),
           latency_ms: Number(Math.round(e.latency_ms)),
           req_size: Number(Math.round(e.req_size)),
@@ -72,7 +74,6 @@ app
               : JSON.stringify(e.body)
             : null,
         };
-
         return event;
       });
 
