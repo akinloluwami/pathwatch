@@ -1,0 +1,10 @@
+node_modules
+dist
+.next
+.output
+coverage
+.turbo
+*.log
+.env
+.env.*
+!.env.example

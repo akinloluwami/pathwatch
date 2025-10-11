@@ -1,9 +1,13 @@
 {
   "name": "collector",
   "version": "1.0.50",
+  "private": true,
   "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir ./dist --target bun",
+    "start": "bun run dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run --watch src/index.ts"
+    "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
     "axios": "^1.12.2",

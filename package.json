@@ -1,0 +1,31 @@
+{
+  "name": "pathwatch",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PathWatch - API monitoring and analytics platform",
+  "workspaces": [
+    "apps/*",
+    "tinybird"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "collector:dev": "turbo run dev --filter=collector",
+    "console:dev": "turbo run dev --filter=console",
+    "query:dev": "turbo run dev --filter=query",
+    "tinybird:deploy": "turbo run deploy --filter=pathwatch-tinybird"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "bun@1.0.0"
+}

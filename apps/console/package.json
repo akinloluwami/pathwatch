@@ -4,10 +4,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "start": "node .output/server/index.mjs",
     "build": "vite build",
+    "start": "node .output/server/index.mjs",
     "serve": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "clean": "rm -rf .output dist node_modules"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.6",

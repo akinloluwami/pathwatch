@@ -1,10 +1,12 @@
 {
   "name": "pathwatch-tinybird",
   "version": "1.0.0",
+  "private": true,
   "description": "Tinybird configuration and deployment scripts for PathWatch",
   "scripts": {
     "deploy": "tsx scripts/deployPipes.ts",
-    "deploy:watch": "tsx watch scripts/deployPipes.ts"
+    "deploy:watch": "tsx watch scripts/deployPipes.ts",
+    "clean": "rm -rf node_modules"
   },
   "dependencies": {
     "dotenv": "^17.2.2",
