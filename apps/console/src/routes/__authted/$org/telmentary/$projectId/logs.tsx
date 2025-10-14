@@ -15,9 +15,6 @@ type LogEntry = {
   method: string;
   path: string;
   duration: number;
-  region: string;
-  message: string;
-  requestId: string;
 };
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
@@ -60,8 +57,8 @@ function RouteComponent() {
 
       return (
         log.path.toLowerCase().includes(term) ||
-        log.message.toLowerCase().includes(term) ||
-        log.requestId.toLowerCase().includes(term)
+        log.method.toLowerCase().includes(term) ||
+        String(log.status).includes(term)
       );
     });
   }, [logs, activeLevels, searchTerm]);
@@ -158,7 +155,7 @@ function RouteComponent() {
                   key={level}
                   onClick={() => handleToggleLevel(level)}
                   showBrackets={isActive}
-                  className={`${isActive ? 'bg-white/10 text-white' : 'bg-black/20 text-gray-400'} w-auto px-4 py-0 uppercase tracking-[0.2em] text-[11px] border-gray-700`}
+                  className={`${isActive ? 'bg-white/10 text-white' : 'bg-black/20 text-gray-400'} min-w-[96px] justify-center px-4 py-0 uppercase tracking-[0.2em] text-[11px] border-gray-700`}
                 >
                   {LEVEL_LABELS[level]}
                 </Button>
@@ -173,7 +170,7 @@ function RouteComponent() {
                 spellCheck={false}
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search message / path / request id"
+                placeholder="Search route / status"
                 className="h-full w-64 border border-gray-800 bg-black/40 pl-9 pr-3 text-xs uppercase tracking-[0.2em] text-gray-300 placeholder:text-gray-600 focus:border-[#f45817] focus:outline-none"
               />
             </div>
@@ -182,9 +179,9 @@ function RouteComponent() {
                 icon={<RefreshCcw size={14} />}
                 onClick={handleRefresh}
                 showBrackets={false}
-                className="w-auto px-4 uppercase tracking-[0.25em] text-[11px] border-gray-700 text-gray-200 hover:bg-white/10"
+                className="w-10 justify-center border-gray-700 text-gray-200 hover:bg-white/10"
               >
-                Refresh Mock
+                <span className="sr-only">Refresh mock data</span>
               </Button>
               <span className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
                 Showing {filteredLogs.length} / {stats.total}
@@ -197,17 +194,14 @@ function RouteComponent() {
           <Brackets />
           {filteredLogs.length ? (
             <div className="h-full overflow-auto">
-              <table className="w-full min-w-[68rem] border-collapse text-left text-sm">
+              <table className="w-full min-w-[48rem] border-collapse text-left text-sm table-fixed">
                 <thead className="sticky top-0 bg-black/80 text-[11px] uppercase tracking-[0.3em] text-gray-500">
                   <tr>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Time</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Level</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Status</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Route</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Message</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Duration</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Region</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Request</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -233,19 +227,12 @@ function RouteComponent() {
                         {log.status}
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-[#f45817] whitespace-nowrap">
-                        {log.method} {log.path}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-200 leading-relaxed">
-                        <p>{log.message}</p>
+                        <span className="block max-w-[16rem] truncate">
+                          {log.method} {log.path}
+                        </span>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
                         {formatLatency(log.duration)}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-500 whitespace-nowrap">
-                        {log.region.toUpperCase()}
-                      </td>
-                      <td className="px-4 py-3 font-mono text-[10px] text-gray-600 whitespace-nowrap">
-                        {log.requestId}
                       </td>
                     </tr>
                   ))}
@@ -275,7 +262,6 @@ function generateLogs(): LogEntry[] {
   ];
 
   const methods: Array<LogEntry['method']> = ['GET', 'POST', 'PATCH', 'DELETE'];
-  const regions = ['iad', 'cdg', 'sin', 'bom', 'sfo', 'gru'];
 
   return Array.from({ length: 120 }, () => {
     const timestamp = faker.date.recent({ days: 2, refDate: now });
@@ -292,10 +278,6 @@ function generateLogs(): LogEntry[] {
 
     const duration = faker.number.int({ min: 18, max: 1800 });
 
-    const region = faker.helpers.arrayElement(regions);
-    const requestId = faker.string.hexadecimal({ length: 12, casing: 'lower', prefix: '' });
-    const message = chooseMessage(level);
-
     return {
       id: faker.string.uuid(),
       timestamp,
@@ -304,27 +286,8 @@ function generateLogs(): LogEntry[] {
       method,
       path,
       duration,
-      region,
-      message,
-      requestId,
     };
   }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-}
-
-function chooseMessage(level: LogLevel) {
-  if (level === 'error') {
-    return faker.hacker.phrase();
-  }
-
-  if (level === 'warn') {
-    return faker.company.buzzPhrase();
-  }
-
-  return faker.helpers.arrayElement([
-    faker.hacker.verb() + ' request processed',
-    faker.hacker.phrase(),
-    `edge node ${faker.word.sample()} responded`,
-  ]);
 }
 
 function computeStats(logs: LogEntry[]) {
