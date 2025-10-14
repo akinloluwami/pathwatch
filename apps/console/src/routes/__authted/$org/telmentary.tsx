@@ -35,7 +35,7 @@ function RouteComponent() {
 
   return (
     <div className="flex h-full space-x-5">
-      <div className="w-72 h-full border border-gray-800 relative">
+      <div className="w-72 h-full border border-gray-800 relative flex-shrink-0">
         <div className="bg-gray-400/10 border-b border-gray-800">
           <button className="w-full flex items-center justify-between px-4 py-2">
             <span className="text-sm">Plaything</span>
@@ -66,7 +66,9 @@ function RouteComponent() {
 
         <Brackets />
       </div>
-      <Outlet />
+      <div className="flex-1 min-w-0">
+        <Outlet />
+      </div>
     </div>
   );
 }
