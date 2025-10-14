@@ -28,7 +28,6 @@ function RouteComponent() {
     },
   ];
 
-  // Helper function to check if a link is active
   const isLinkActive = (linkPath: string) => {
     const resolvedPath = linkPath.replace('$org', 'logbase').replace('$projectId', 'plaything');
     return pathname === resolvedPath;
