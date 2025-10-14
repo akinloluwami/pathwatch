@@ -1,18 +1,20 @@
-import { ReactNode } from "react";
-import Brackets from "./brackets";
+import { ReactNode } from 'react';
+import Brackets from './brackets';
 
 interface ButtonProps {
   children: ReactNode;
   icon?: ReactNode;
   onClick?: () => void;
   className?: string;
+  showBrackets?: boolean;
 }
 
 export function Button({
   children,
   icon,
   onClick,
-  className = "",
+  className = '',
+  showBrackets = true,
 }: ButtonProps) {
   return (
     <div className="relative">
@@ -25,11 +27,11 @@ export function Button({
             {icon}
           </span>
         )}
-        <span className={`uppercase text-xs ${icon ? "pr-2" : "px-4"}`}>
-          {children}
-        </span>
+        <span className={`uppercase text-xs ${icon ? 'pr-2' : 'px-4'}`}>{children}</span>
       </button>
-      <Brackets />
+      <div className={showBrackets ? 'opacity-100' : 'opacity-0'}>
+        <Brackets />
+      </div>
     </div>
   );
 }
