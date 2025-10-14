@@ -2,7 +2,6 @@ import Brackets from '@/components/ui/brackets';
 import { Button } from '@/components/ui/button';
 import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
 import { BetweenHorizonalStart, ChevronDown, Settings2, TriangleAlert } from 'lucide-react';
-import path from 'path';
 
 export const Route = createFileRoute('/__authted/$org/telmentary')({
   component: RouteComponent,
