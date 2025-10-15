@@ -14,7 +14,14 @@ type LogEntry = {
   status: number;
   method: string;
   path: string;
-  duration: number;
+  host: string;
+  url: string;
+  latencyMs: number;
+  requestSize: number;
+  responseSize: number;
+  ip: string;
+  userAgent: string;
+  body?: string;
 };
 
 const LEVEL_STYLES: Record<LogLevel, string> = {
@@ -58,6 +65,9 @@ function RouteComponent() {
       return (
         log.path.toLowerCase().includes(term) ||
         log.method.toLowerCase().includes(term) ||
+        log.ip.toLowerCase().includes(term) ||
+        log.userAgent.toLowerCase().includes(term) ||
+        (log.body ? log.body.toLowerCase().includes(term) : false) ||
         String(log.status).includes(term)
       );
     });
@@ -125,14 +135,14 @@ function RouteComponent() {
       <section className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-shrink-0">
           <StatCard
-            label="Stream Volume"
+            label="Ingested Events"
             value={stats.total.toLocaleString()}
             hint={`${stats.errorCount} errors · ${stats.warnCount} warnings`}
           />
           <StatCard
             label="Error Rate"
             value={`${stats.errorRate.toFixed(1)}%`}
-            hint={`Debug events: ${stats.debugCount.toLocaleString()}`}
+            hint={`Info ${stats.infoCount.toLocaleString()} · Debug ${stats.debugCount.toLocaleString()}`}
           />
           <StatCard
             label="Avg Latency"
@@ -140,9 +150,9 @@ function RouteComponent() {
             hint={`p95 ${formatLatency(stats.p95Latency)} · p99 ${formatLatency(stats.p99Latency)}`}
           />
           <StatCard
-            label="Stream Freshness"
-            value={stats.newestAt ? formatFreshness(stats.freshnessMs) : '—'}
-            hint={stats.newestAt ? formatTimestamp(stats.newestAt, timeFormatter) : ''}
+            label="Transfer Volume"
+            value={formatBytes(stats.totalTransferBytes)}
+            hint={`Req avg ${formatBytes(stats.avgRequestSize)} · Res avg ${formatBytes(stats.avgResponseSize)}`}
           />
         </div>
 
@@ -170,7 +180,7 @@ function RouteComponent() {
                 spellCheck={false}
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="Search route / status"
+                placeholder="Search route / ip"
                 className="h-full w-64 border border-gray-800 bg-black/40 pl-9 pr-3 text-xs uppercase tracking-[0.2em] text-gray-300 placeholder:text-gray-600 focus:border-[#f45817] focus:outline-none"
               />
             </div>
@@ -194,14 +204,16 @@ function RouteComponent() {
           <Brackets />
           {filteredLogs.length ? (
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full min-w-[48rem] border-collapse text-left text-sm table-fixed">
+              <table className="w-full min-w-[54rem] border-collapse text-left text-sm table-fixed">
                 <thead className="sticky top-0 bg-black/80 text-[11px] uppercase tracking-[0.3em] text-gray-500">
                   <tr>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Time</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Level</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Status</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Route</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Duration</th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Latency</th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Request</th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Response</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,13 +238,19 @@ function RouteComponent() {
                       >
                         {log.status}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#f45817] whitespace-nowrap">
-                        <span className="block max-w-[16rem] truncate">
+                      <td className="px-4 py-3 font-mono text-xs text-[#f45817]">
+                        <div className="max-w-[18rem] truncate">
                           {log.method} {log.path}
-                        </span>
+                        </div>
                       </td>
                       <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
-                        {formatLatency(log.duration)}
+                        {formatLatency(log.latencyMs)}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
+                        {formatBytes(log.requestSize)}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
+                        {formatBytes(log.responseSize)}
                       </td>
                     </tr>
                   ))}
@@ -255,20 +273,63 @@ function generateLogs(): LogEntry[] {
   const basePaths = [
     '/api/v1/logs',
     '/api/v1/projects',
+    '/api/v1/projects/:projectId/logs',
     '/api/v1/errors',
-    '/api/v1/metrics',
+    '/api/v1/metrics/:metric',
     '/api/v1/ingest',
     '/api/v1/uptime',
+    '/api/v1/routes/:routeId',
   ];
 
-  const methods: Array<LogEntry['method']> = ['GET', 'POST', 'PATCH', 'DELETE'];
+  const hosts = [
+    'api.pathwatch.dev',
+    'collector.pathwatch.dev',
+    'edge.pathwatch.dev',
+    'staging-api.pathwatch.dev',
+  ];
+
+  const methods: Array<LogEntry['method']> = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 
   return Array.from({ length: 120 }, () => {
     const timestamp = faker.date.recent({ days: 2, refDate: now });
-    const statusPool = [200, 200, 201, 202, 204, 400, 401, 403, 404, 409, 422, 429, 500, 502, 504];
+    const statusPool = [
+      200, 200, 201, 202, 204, 207, 301, 304, 400, 401, 403, 404, 409, 422, 429, 500, 502, 504,
+    ];
     const status = faker.helpers.arrayElement(statusPool);
     const method = faker.helpers.arrayElement(methods);
-    const path = faker.helpers.arrayElement(basePaths);
+    const pathTemplate = faker.helpers.arrayElement(basePaths);
+    const path = pathTemplate
+      .replace(':projectId', faker.string.alphanumeric({ length: 8 }).toLowerCase())
+      .replace(':metric', faker.helpers.arrayElement(['latency', 'errors', 'volume']))
+      .replace(':routeId', faker.string.alphanumeric({ length: 6 }).toLowerCase());
+    const host = faker.helpers.arrayElement(hosts);
+    const querySuffix =
+      method === 'GET' && Math.random() < 0.4
+        ? `?cursor=${faker.string.alphanumeric({ length: 10 }).toLowerCase()}`
+        : '';
+    const url = `https://${host}${path}${querySuffix}`;
+    const latencyMs = faker.number.int({ min: 12, max: 2400 });
+    const requestSize = faker.number.int({ min: 120, max: 128_000 });
+    const responseSize = faker.number.int({ min: 200, max: 256_000 });
+    const ip = faker.internet.ipv4();
+    const userAgent = faker.internet.userAgent();
+    const body = ['POST', 'PUT', 'PATCH'].includes(method)
+      ? JSON.stringify(
+          {
+            event: faker.helpers.arrayElement([
+              'ingest',
+              'heartbeat',
+              'error_report',
+              'metric_push',
+            ]),
+            tenant: faker.string.alphanumeric({ length: 6 }).toLowerCase(),
+            success: status < 400,
+          },
+          null,
+          0
+        )
+      : undefined;
+
     const level: LogLevel =
       status >= 500
         ? 'error'
@@ -276,16 +337,21 @@ function generateLogs(): LogEntry[] {
           ? 'warn'
           : faker.helpers.arrayElement(['info', 'debug']);
 
-    const duration = faker.number.int({ min: 18, max: 1800 });
-
     return {
       id: faker.string.uuid(),
       timestamp,
       level,
       status,
       method,
-      path,
-      duration,
+      path: `${path}${querySuffix}`,
+      host,
+      url,
+      latencyMs,
+      requestSize,
+      responseSize,
+      ip,
+      userAgent,
+      body,
     };
   }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
@@ -303,7 +369,9 @@ function computeStats(logs: LogEntry[]) {
       p95Latency: 0,
       p99Latency: 0,
       newestAt: undefined as Date | undefined,
-      freshnessMs: 0,
+      avgRequestSize: 0,
+      avgResponseSize: 0,
+      totalTransferBytes: 0,
     };
   }
 
@@ -313,13 +381,20 @@ function computeStats(logs: LogEntry[]) {
   const infoCount = logs.filter((log) => log.level === 'info').length;
   const debugCount = logs.filter((log) => log.level === 'debug').length;
 
-  const durations = logs.map((log) => log.duration).sort((a, b) => a - b);
-  const avgLatency = durations.reduce((acc, value) => acc + value, 0) / durations.length;
-  const p95Latency = percentile(durations, 0.95);
-  const p99Latency = percentile(durations, 0.99);
+  const latencies = logs.map((log) => log.latencyMs).sort((a, b) => a - b);
+  const avgLatency = latencies.length
+    ? latencies.reduce((acc, value) => acc + value, 0) / latencies.length
+    : 0;
+  const p95Latency = percentile(latencies, 0.95);
+  const p99Latency = percentile(latencies, 0.99);
+
+  const totalRequestSize = logs.reduce((acc, log) => acc + log.requestSize, 0);
+  const totalResponseSize = logs.reduce((acc, log) => acc + log.responseSize, 0);
+  const avgRequestSize = total ? totalRequestSize / total : 0;
+  const avgResponseSize = total ? totalResponseSize / total : 0;
+  const totalTransferBytes = totalRequestSize + totalResponseSize;
 
   const newestAt = logs[0]?.timestamp;
-  const freshnessMs = newestAt ? Math.max(0, Date.now() - newestAt.getTime()) : 0;
   const errorRate = total ? (errorCount / total) * 100 : 0;
 
   return {
@@ -333,7 +408,9 @@ function computeStats(logs: LogEntry[]) {
     p95Latency,
     p99Latency,
     newestAt,
-    freshnessMs,
+    avgRequestSize,
+    avgResponseSize,
+    totalTransferBytes,
   };
 }
 
@@ -356,20 +433,22 @@ function formatLatency(value: number) {
   return `${Math.round(value)}ms`;
 }
 
-function formatFreshness(ms: number) {
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 5) {
-    return 'live';
+function formatBytes(value: number) {
+  if (!value) {
+    return '0 B';
   }
-  if (seconds < 60) {
-    return `${seconds}s ago`;
+
+  const units = ['B', 'KB', 'MB', 'GB'];
+  let index = 0;
+  let size = value;
+
+  while (size >= 1024 && index < units.length - 1) {
+    size /= 1024;
+    index += 1;
   }
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return `${minutes}m ${seconds % 60}s ago`;
-  }
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ${minutes % 60}m ago`;
+
+  const display = index === 0 || size >= 10 ? size.toFixed(0) : size.toFixed(1);
+  return `${display} ${units[index]}`;
 }
 
 function msPart(date: Date) {
