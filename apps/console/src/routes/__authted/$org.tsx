@@ -1,28 +1,23 @@
-import {
-  createFileRoute,
-  Link,
-  Outlet,
-  useLocation,
-} from "@tanstack/react-router";
-import { Logs, Bolt } from "lucide-react";
+import { createFileRoute, Link, Outlet, useLocation } from '@tanstack/react-router';
+import { Logs, Bolt } from 'lucide-react';
 
-export const Route = createFileRoute("/__authted/$org")({
+export const Route = createFileRoute('/__authted/$org')({
   component: RouteComponent,
 });
 
 function RouteComponent() {
   const routes = [
-    { name: "Telemetry", icon: Logs, path: "/$org/telmentary" },
-    { name: "Settings", icon: Bolt, path: "/$org/settings" },
+    { name: 'Telemetry', icon: Logs, path: '/$org/telmentary' },
+    { name: 'Settings', icon: Bolt, path: '/$org/settings' },
   ];
 
   const { pathname } = useLocation();
 
   return (
-    <div className="p-5 flex space-x-5 h-screen">
-      <div className="space-y-2">
+    <div className="flex space-x-5 h-full overflow-hidden p-5">
+      <div className="space-y-2 flex-shrink-0">
         {routes.map((route) => {
-          const isActive = pathname.includes(route.path.split("$org/")[1]);
+          const isActive = pathname.includes(route.path.split('$org/')[1]);
           return (
             <div key={route.name} className="relative">
               <Link
@@ -51,7 +46,7 @@ function RouteComponent() {
           );
         })}
       </div>
-      <div className="h-full">
+      <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
         <Outlet />
       </div>
     </div>

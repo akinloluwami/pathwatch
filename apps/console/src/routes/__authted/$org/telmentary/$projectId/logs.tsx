@@ -94,10 +94,10 @@ function RouteComponent() {
   };
 
   return (
-    <div className="flex-1 h-full border border-gray-800 bg-black/40 relative flex flex-col overflow-hidden">
+    <div className="flex-1 h-[calc(100vh-2.5rem)] border border-gray-800 bg-black/40 relative flex flex-col overflow-hidden">
       <Brackets />
 
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60">
+      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
         <div>
           <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">Telemetry // Logs</p>
           <div className="mt-1 flex items-center gap-3 text-sm text-gray-300">
@@ -122,8 +122,8 @@ function RouteComponent() {
         </div>
       </header>
 
-      <section className="px-6 py-5 space-y-5 flex-1 flex flex-col overflow-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-shrink-0">
           <StatCard
             label="Stream Volume"
             value={stats.total.toLocaleString()}
@@ -146,7 +146,7 @@ function RouteComponent() {
           />
         </div>
 
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between flex-shrink-0">
           <div className="flex flex-wrap items-center gap-3">
             {LEVEL_ORDER.map((level) => {
               const isActive = activeLevels.includes(level);
@@ -190,10 +190,10 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="flex-1 border border-gray-800 bg-black/30 relative overflow-hidden">
+        <div className="flex-1 min-h-0 border border-gray-800 bg-black/30 relative flex flex-col">
           <Brackets />
           {filteredLogs.length ? (
-            <div className="h-full overflow-auto">
+            <div className="flex-1 min-h-0 overflow-auto">
               <table className="w-full min-w-[48rem] border-collapse text-left text-sm table-fixed">
                 <thead className="sticky top-0 bg-black/80 text-[11px] uppercase tracking-[0.3em] text-gray-500">
                   <tr>
