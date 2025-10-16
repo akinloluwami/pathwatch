@@ -43,8 +43,11 @@ function RouteComponent() {
   const responseTimeData = useMemo(() => generateResponseTimeDistribution(), []);
   const statusCodeData = useMemo(() => generateStatusCodeBreakdown(), []);
   const topEndpointsData = useMemo(() => generateTopEndpoints(), []);
-  const errorRateData = useMemo(() => generateErrorRateTimeline(), []);
-  const regionData = useMemo(() => generateRegionData(), []);
+  const errorRateData = useMemo(() => {
+    const data = generateErrorRateTimeline();
+    console.log('Error Rate Data:', data);
+    return data;
+  }, []);
   const methodData = useMemo(() => generateMethodData(), []);
   const cacheHitData = useMemo(() => generateCacheHitData(), []);
 
@@ -264,79 +267,48 @@ function RouteComponent() {
           </ChartCard>
         </div>
 
-        <ChartCard title="Error Rate Timeline" height="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={errorRateData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-              <XAxis
-                dataKey="time"
-                stroke="#6b7280"
-                style={{ fontSize: '11px', fontFamily: 'monospace' }}
-              />
-              <YAxis
-                stroke="#6b7280"
-                style={{ fontSize: '11px', fontFamily: 'monospace' }}
-                domain={[0, 10]}
-              />
-              <Tooltip
-                contentStyle={{
-                  background: '#000',
-                  border: '1px solid #374151',
-                  borderRadius: '0',
-                  fontFamily: 'monospace',
-                  fontSize: '12px',
-                  color: '#fff',
-                }}
-                labelStyle={{ color: '#9ca3af' }}
-                itemStyle={{ color: '#fff' }}
-              />
-              <Line
-                type="monotone"
-                dataKey="errorRate"
-                stroke="#ef4444"
-                strokeWidth={2}
-                dot={{ fill: '#ef4444', r: 3 }}
-                activeDot={{ r: 5 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <ChartCard title="Error Rate Timeline" height="h-80">
+          {errorRateData.length ? (
+            <div className="h-full w-full">
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={errorRateData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                  <XAxis
+                    dataKey="time"
+                    stroke="#6b7280"
+                    style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                  />
+                  <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+                  <Tooltip
+                    contentStyle={{
+                      background: '#000',
+                      border: '1px solid #374151',
+                      borderRadius: '0',
+                      fontFamily: 'monospace',
+                      fontSize: '12px',
+                      color: '#fff',
+                    }}
+                    labelStyle={{ color: '#9ca3af' }}
+                    itemStyle={{ color: '#fff' }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="errorRate"
+                    stroke="#ef4444"
+                    strokeWidth={3}
+                    dot={{ fill: '#ef4444', r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.3em] text-gray-600">
+              No error rate data
+            </div>
+          )}
         </ChartCard>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-          <ChartCard title="Traffic by Region" height="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={regionData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {regionData.map((_entry: any, index: number) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={REGION_COLORS[index % REGION_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: '#000',
-                    border: '1px solid #374151',
-                    borderRadius: '0',
-                    fontFamily: 'monospace',
-                    fontSize: '12px',
-                    color: '#fff',
-                  }}
-                  itemStyle={{ color: '#fff' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartCard>
-
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <ChartCard title="Request Methods" height="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={methodData}>
@@ -363,7 +335,7 @@ function RouteComponent() {
 
           <ChartCard title="Cache Hit Rate" height="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={cacheHitData}>
+              <AreaChart data={cacheHitData} margin={{ top: 10, right: 30, bottom: 10, left: 0 }}>
                 <defs>
                   <linearGradient id="cacheGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -384,8 +356,10 @@ function RouteComponent() {
                     borderRadius: '0',
                     fontFamily: 'monospace',
                     fontSize: '12px',
+                    color: '#fff',
                   }}
                   labelStyle={{ color: '#9ca3af' }}
+                  itemStyle={{ color: '#fff' }}
                 />
                 <Area
                   type="monotone"
@@ -444,15 +418,13 @@ function ChartCard({ title, height, children }: ChartCardProps) {
   return (
     <div className={`relative border border-gray-800 bg-black/30 ${height} flex flex-col`}>
       <Brackets />
-      <div className="border-b border-gray-800 px-4 py-3 bg-black/40">
+      <div className="border-b border-gray-800 px-4 py-3 bg-black/40 flex-shrink-0 relative z-10">
         <p className="uppercase text-[10px] tracking-[0.35em] text-gray-400">{title}</p>
       </div>
-      <div className="flex-1 p-4">{children}</div>
+      <div className="flex-1 p-4 min-h-0 relative z-10">{children}</div>
     </div>
   );
 }
-
-const REGION_COLORS = ['#f45817', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
 
 function generateRequestsOverTime() {
   const data = [];
@@ -496,23 +468,15 @@ function generateTopEndpoints() {
 
 function generateErrorRateTimeline() {
   const data = [];
+  const now = new Date();
   for (let i = 23; i >= 0; i--) {
+    const hour = (now.getHours() - i + 24) % 24;
     data.push({
-      time: `${i}:00`,
-      errorRate: Math.random() * 5 + 1,
+      time: `${hour.toString().padStart(2, '0')}:00`,
+      errorRate: Number((Math.random() * 5 + 1).toFixed(2)),
     });
   }
-  return data.reverse();
-}
-
-function generateRegionData() {
-  return [
-    { name: 'US-East', value: 425000 },
-    { name: 'EU-West', value: 285000 },
-    { name: 'AP-South', value: 165000 },
-    { name: 'US-West', value: 95000 },
-    { name: 'Other', value: 58000 },
-  ];
+  return data;
 }
 
 function generateMethodData() {
