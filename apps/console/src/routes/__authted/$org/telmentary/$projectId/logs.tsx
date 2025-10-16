@@ -139,6 +139,17 @@ function RouteComponent() {
       <Brackets />
 
       <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
+        <div>
+          <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">
+            Telemetry // Logs
+          </p>
+          <div className="mt-1 flex items-center gap-3 text-sm text-gray-300">
+            <span className="font-medium text-white">{projectId}</span>
+            <span className="text-gray-600">/</span>
+            <span className="uppercase text-xs tracking-[0.3em] text-gray-500">Org {org}</span>
+          </div>
+        </div>
+
         <div className="relative">
           <button
             onClick={() => setIsIntervalOpen(!isIntervalOpen)}
@@ -175,20 +186,6 @@ function RouteComponent() {
               </div>
             </>
           )}
-        </div>
-
-        <div className="text-right text-xs text-gray-400">
-          <p>
-            Latest event:{' '}
-            <span className="text-white">
-              {newestLog
-                ? `${formatTimestamp(newestLog.timestamp, timeFormatter)}.${msPart(newestLog.timestamp)}`
-                : '—'}
-            </span>
-          </p>
-          <p className="mt-1">
-            Total events: <span className="text-white">{stats.total}</span>
-          </p>
         </div>
       </div>
 
