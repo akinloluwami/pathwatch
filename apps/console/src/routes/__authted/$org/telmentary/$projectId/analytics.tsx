@@ -1,7 +1,24 @@
 import Brackets from '@/components/ui/brackets';
 import { createFileRoute } from '@tanstack/react-router';
-import { TrendingUp, TrendingDown, Activity, BarChart3, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { TrendingUp, TrendingDown, Activity, ChevronDown } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
 
 type TimeInterval = '1h' | '6h' | '24h' | '7d' | '30d';
 
@@ -21,6 +38,15 @@ function RouteComponent() {
   const { org, projectId } = Route.useParams();
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('24h');
   const [isIntervalOpen, setIsIntervalOpen] = useState(false);
+
+  const requestsOverTimeData = useMemo(() => generateRequestsOverTime(), []);
+  const responseTimeData = useMemo(() => generateResponseTimeDistribution(), []);
+  const statusCodeData = useMemo(() => generateStatusCodeBreakdown(), []);
+  const topEndpointsData = useMemo(() => generateTopEndpoints(), []);
+  const errorRateData = useMemo(() => generateErrorRateTimeline(), []);
+  const regionData = useMemo(() => generateRegionData(), []);
+  const methodData = useMemo(() => generateMethodData(), []);
+  const cacheHitData = useMemo(() => generateCacheHitData(), []);
 
   return (
     <div className="flex-1 h-[calc(100vh-2.5rem)] border border-gray-800 bg-black/40 relative flex flex-col overflow-hidden">
@@ -111,55 +137,248 @@ function RouteComponent() {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <ChartCard title="Requests Over Time" height="h-80">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={requestsOverTimeData}>
+                <defs>
+                  <linearGradient id="requestsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f45817" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f45817" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                  labelStyle={{ color: '#9ca3af' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="requests"
+                  stroke="#f45817"
+                  strokeWidth={2}
+                  fill="url(#requestsGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </ChartCard>
 
           <ChartCard title="Response Time Distribution" height="h-80">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={responseTimeData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  dataKey="range"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                  labelStyle={{ color: '#9ca3af' }}
+                />
+                <Bar dataKey="count" fill="#f45817" />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartCard>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
           <ChartCard title="Status Code Breakdown" height="h-80">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={statusCodeData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  paddingAngle={2}
+                  dataKey="value"
+                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {statusCodeData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </ChartCard>
 
           <ChartCard title="Top Endpoints by Volume" height="h-80">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topEndpointsData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  type="number"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="endpoint"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                  width={150}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="requests" fill="#f45817" />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartCard>
         </div>
 
         <ChartCard title="Error Rate Timeline" height="h-64">
-          <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-            <BarChart3 size={48} className="opacity-20" />
-          </div>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={errorRateData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+              <XAxis
+                dataKey="time"
+                stroke="#6b7280"
+                style={{ fontSize: '11px', fontFamily: 'monospace' }}
+              />
+              <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+              <Tooltip
+                contentStyle={{
+                  background: '#000',
+                  border: '1px solid #374151',
+                  borderRadius: '0',
+                  fontFamily: 'monospace',
+                  fontSize: '12px',
+                }}
+                labelStyle={{ color: '#9ca3af' }}
+              />
+              <Line type="monotone" dataKey="errorRate" stroke="#ef4444" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
         </ChartCard>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
           <ChartCard title="Traffic by Region" height="h-72">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={regionData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {regionData.map((_entry: any, index: number) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={REGION_COLORS[index % REGION_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
           </ChartCard>
 
           <ChartCard title="Request Methods" height="h-72">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={methodData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  dataKey="method"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="count" fill="#f45817" />
+              </BarChart>
+            </ResponsiveContainer>
           </ChartCard>
 
           <ChartCard title="Cache Hit Rate" height="h-72">
-            <div className="flex items-center justify-center h-full text-xs uppercase tracking-[0.3em] text-gray-600">
-              <BarChart3 size={48} className="opacity-20" />
-            </div>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={cacheHitData}>
+                <defs>
+                  <linearGradient id="cacheGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis
+                  dataKey="time"
+                  stroke="#6b7280"
+                  style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                />
+                <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+                <Tooltip
+                  contentStyle={{
+                    background: '#000',
+                    border: '1px solid #374151',
+                    borderRadius: '0',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                  }}
+                  labelStyle={{ color: '#9ca3af' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hitRate"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  fill="url(#cacheGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </ChartCard>
         </div>
       </section>
@@ -214,4 +433,88 @@ function ChartCard({ title, height, children }: ChartCardProps) {
       <div className="flex-1 p-4">{children}</div>
     </div>
   );
+}
+
+const REGION_COLORS = ['#f45817', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'];
+
+function generateRequestsOverTime() {
+  const data = [];
+  for (let i = 23; i >= 0; i--) {
+    data.push({
+      time: `${i}:00`,
+      requests: Math.floor(Math.random() * 5000) + 15000,
+    });
+  }
+  return data.reverse();
+}
+
+function generateResponseTimeDistribution() {
+  return [
+    { range: '0-100ms', count: 45000 },
+    { range: '100-200ms', count: 32000 },
+    { range: '200-500ms', count: 18000 },
+    { range: '500-1s', count: 8500 },
+    { range: '1s+', count: 2800 },
+  ];
+}
+
+function generateStatusCodeBreakdown() {
+  return [
+    { name: '2xx', value: 850000, color: '#10b981' },
+    { name: '3xx', value: 42000, color: '#3b82f6' },
+    { name: '4xx', value: 28000, color: '#f59e0b' },
+    { name: '5xx', value: 8500, color: '#ef4444' },
+  ];
+}
+
+function generateTopEndpoints() {
+  return [
+    { endpoint: '/api/v1/logs', requests: 125000 },
+    { endpoint: '/api/v1/projects', requests: 98000 },
+    { endpoint: '/api/v1/ingest', requests: 85000 },
+    { endpoint: '/api/v1/metrics', requests: 72000 },
+    { endpoint: '/api/v1/errors', requests: 58000 },
+  ];
+}
+
+function generateErrorRateTimeline() {
+  const data = [];
+  for (let i = 23; i >= 0; i--) {
+    data.push({
+      time: `${i}:00`,
+      errorRate: Math.random() * 5 + 1,
+    });
+  }
+  return data.reverse();
+}
+
+function generateRegionData() {
+  return [
+    { name: 'US-East', value: 425000 },
+    { name: 'EU-West', value: 285000 },
+    { name: 'AP-South', value: 165000 },
+    { name: 'US-West', value: 95000 },
+    { name: 'Other', value: 58000 },
+  ];
+}
+
+function generateMethodData() {
+  return [
+    { method: 'GET', count: 580000 },
+    { method: 'POST', count: 245000 },
+    { method: 'PUT', count: 85000 },
+    { method: 'DELETE', count: 42000 },
+    { method: 'PATCH', count: 28000 },
+  ];
+}
+
+function generateCacheHitData() {
+  const data = [];
+  for (let i = 23; i >= 0; i--) {
+    data.push({
+      time: `${i}:00`,
+      hitRate: Math.random() * 15 + 75,
+    });
+  }
+  return data.reverse();
 }
