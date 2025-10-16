@@ -140,9 +140,7 @@ function RouteComponent() {
 
       <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
         <div>
-          <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">
-            Telemetry // Logs
-          </p>
+          <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">Telemetry // Logs</p>
           <div className="mt-1 flex items-center gap-3 text-sm text-gray-300">
             <span className="font-medium text-white">{projectId}</span>
             <span className="text-gray-600">/</span>
