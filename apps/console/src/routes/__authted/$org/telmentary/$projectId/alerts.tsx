@@ -138,14 +138,14 @@ function RouteComponent() {
           </div>
         </div>
 
-        <div className="text-right text-xs text-gray-400">
-          <p>
-            Active alerts: <span className="text-white">{stats.active}</span>
-          </p>
-          <p className="mt-1">
-            Total triggers: <span className="text-white">{stats.totalTriggers}</span>
-          </p>
-        </div>
+        <Button
+          icon={<Plus size={14} />}
+          onClick={() => setIsCreateModalOpen(true)}
+          showBrackets={false}
+          className="border-gray-700 text-gray-200 hover:bg-white/5"
+        >
+          New Alert
+        </Button>
       </header>
 
       <section className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-hidden">
@@ -193,17 +193,6 @@ function RouteComponent() {
               className={`${filterStatus === 'paused' ? 'bg-white/10 text-white' : 'bg-black/20 text-gray-400'} w-[80px] justify-center px-3 py-0 uppercase tracking-[0.2em] text-[11px] border-gray-700 transition-colors`}
             >
               Paused
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <Button
-              icon={<Plus size={14} />}
-              onClick={() => setIsCreateModalOpen(true)}
-              showBrackets={false}
-              className="border-gray-700 text-gray-200 hover:bg-white/5"
-            >
-              New Alert
             </Button>
           </div>
         </div>
