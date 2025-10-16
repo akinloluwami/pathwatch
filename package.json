@@ -27,5 +27,8 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "packageManager": "bun@1.0.0"
+  "packageManager": "bun@1.0.0",
+  "dependencies": {
+    "recharts": "^3.2.1"
+  }
 }
