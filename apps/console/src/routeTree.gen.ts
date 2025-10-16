@@ -18,6 +18,7 @@ import { Route as _authtedOrgTelmentaryRouteImport } from './routes/__authted/$o
 import { Route as _authtedOrgTelmentaryProjectIdRouteImport } from './routes/__authted/$org/telmentary/$projectId'
 import { Route as _authtedOrgTelmentaryProjectIdIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/index'
 import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes/__authted/$org/telmentary/$projectId/logs'
+import { Route as _authtedOrgTelmentaryProjectIdAlertsRouteImport } from './routes/__authted/$org/telmentary/$projectId/alerts'
 
 const _authedRoute = _authedRouteImport.update({
   id: '/__authed',
@@ -66,6 +67,12 @@ const _authtedOrgTelmentaryProjectIdLogsRoute =
     path: '/logs',
     getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
   } as any)
+const _authtedOrgTelmentaryProjectIdAlertsRoute =
+  _authtedOrgTelmentaryProjectIdAlertsRouteImport.update({
+    id: '/alerts',
+    path: '/alerts',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/$org/': typeof _authtedOrgIndexRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
+  '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/$org': typeof _authtedOrgIndexRoute
+  '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -94,6 +103,7 @@ export interface FileRoutesById {
   '/__authted/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/__authted/$org/': typeof _authtedOrgIndexRoute
   '/__authted/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
+  '/__authted/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/__authted/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/$org/telmentary'
     | '/$org/'
     | '/$org/telmentary/$projectId'
+    | '/$org/telmentary/$projectId/alerts'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId/'
   fileRoutesByTo: FileRoutesByTo
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/api/demo-names'
     | '/$org/telmentary'
     | '/$org'
+    | '/$org/telmentary/$projectId/alerts'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId'
   id:
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
     | '/__authted/$org/telmentary'
     | '/__authted/$org/'
     | '/__authted/$org/telmentary/$projectId'
+    | '/__authted/$org/telmentary/$projectId/alerts'
     | '/__authted/$org/telmentary/$projectId/logs'
     | '/__authted/$org/telmentary/$projectId/'
   fileRoutesById: FileRoutesById
@@ -201,16 +214,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdLogsRouteImport
       parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
     }
+    '/__authted/$org/telmentary/$projectId/alerts': {
+      id: '/__authted/$org/telmentary/$projectId/alerts'
+      path: '/alerts'
+      fullPath: '/$org/telmentary/$projectId/alerts'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdAlertsRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
+    }
   }
 }
 
 interface _authtedOrgTelmentaryProjectIdRouteChildren {
+  _authtedOrgTelmentaryProjectIdAlertsRoute: typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   _authtedOrgTelmentaryProjectIdLogsRoute: typeof _authtedOrgTelmentaryProjectIdLogsRoute
   _authtedOrgTelmentaryProjectIdIndexRoute: typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
 
 const _authtedOrgTelmentaryProjectIdRouteChildren: _authtedOrgTelmentaryProjectIdRouteChildren =
   {
+    _authtedOrgTelmentaryProjectIdAlertsRoute:
+      _authtedOrgTelmentaryProjectIdAlertsRoute,
     _authtedOrgTelmentaryProjectIdLogsRoute:
       _authtedOrgTelmentaryProjectIdLogsRoute,
     _authtedOrgTelmentaryProjectIdIndexRoute:
