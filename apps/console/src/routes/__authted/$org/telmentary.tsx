@@ -6,7 +6,6 @@ import {
   BetweenHorizonalStart,
   Clock4,
   ChevronDown,
-  Layers,
   Settings2,
   TriangleAlert,
 } from 'lucide-react';
@@ -18,7 +17,6 @@ type ProjectSummary = {
   orgSlug: string;
   orgName: string;
   status: string;
-  environment: string;
   updatedAt: string;
   metrics: {
     errors: number;
@@ -44,7 +42,6 @@ function RouteComponent() {
         orgSlug: 'logbase',
         orgName: 'Logbase',
         status: 'Active',
-        environment: 'Production',
         updatedAt: '2025-10-12T17:24:00.000Z',
         metrics: {
           errors: 124,
@@ -57,7 +54,6 @@ function RouteComponent() {
         orgSlug: 'logbase',
         orgName: 'Logbase',
         status: 'Active',
-        environment: 'Staging',
         updatedAt: '2025-10-10T08:12:00.000Z',
         metrics: {
           errors: 42,
@@ -70,7 +66,6 @@ function RouteComponent() {
         orgSlug: 'logbase',
         orgName: 'Logbase',
         status: 'On Hold',
-        environment: 'Sandbox',
         updatedAt: '2025-09-28T21:45:00.000Z',
         metrics: {
           errors: 0,
@@ -193,7 +188,7 @@ function RouteComponent() {
             </p>
 
             {isPickerOpen ? (
-              <div className="absolute left-0 right-0 top-15 z-20 mt-2 overflow-hidden rounded border border-gray-800 bg-black/80 shadow-2xl">
+              <div className="absolute left-0 right-0 top-15 z-20 mt-2 overflow-hidden rounded border border-gray-800 bg-black shadow-2xl">
                 <ul className="relative max-h-64 divide-y divide-gray-900/60 overflow-y-auto">
                   {projects.map((project) => {
                     const isSelected = project.slug === activeProject.slug;
@@ -217,10 +212,7 @@ function RouteComponent() {
                               <BadgeCheck size={12} /> {project.status}
                             </span>
                           </div>
-                          <div className="mt-2 flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-gray-500">
-                            <span className="inline-flex items-center gap-2">
-                              <Layers size={12} /> {project.environment}
-                            </span>
+                          <div className="mt-2 flex items-center justify-end text-[11px] uppercase tracking-[0.3em] text-gray-500">
                             <span>
                               {new Intl.DateTimeFormat('en-GB', {
                                 day: '2-digit',
@@ -240,14 +232,10 @@ function RouteComponent() {
             ) : null}
           </div>
 
-          <div className="mt-4 flex items-center justify-between text-xs text-gray-400">
+          <div className="mt-4 flex items-center text-xs text-gray-400">
             <span className="inline-flex items-center gap-1 text-emerald-300">
               <BadgeCheck size={14} />
               {activeProject.status}
-            </span>
-            <span className="inline-flex items-center gap-1 text-gray-400">
-              <Layers size={14} />
-              {activeProject.environment}
             </span>
           </div>
 
