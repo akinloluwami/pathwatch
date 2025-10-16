@@ -15,7 +15,14 @@ import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
 import { Route as _authtedOrgRouteImport } from './routes/__authted/$org'
 import { Route as _authtedOrgIndexRouteImport } from './routes/__authted/$org/index'
 import { Route as _authtedOrgTelmentaryRouteImport } from './routes/__authted/$org/telmentary'
+import { Route as _authtedOrgSettingsRouteImport } from './routes/__authted/$org/settings'
+import { Route as _authtedOrgSettingsIndexRouteImport } from './routes/__authted/$org/settings/index'
 import { Route as _authtedOrgTelmentaryProjectIdRouteImport } from './routes/__authted/$org/telmentary/$projectId'
+import { Route as _authtedOrgSettingsTeamRouteImport } from './routes/__authted/$org/settings/team'
+import { Route as _authtedOrgSettingsSupportRouteImport } from './routes/__authted/$org/settings/support'
+import { Route as _authtedOrgSettingsSecurityRouteImport } from './routes/__authted/$org/settings/security'
+import { Route as _authtedOrgSettingsGeneralRouteImport } from './routes/__authted/$org/settings/general'
+import { Route as _authtedOrgSettingsBillingRouteImport } from './routes/__authted/$org/settings/billing'
 import { Route as _authtedOrgTelmentaryProjectIdIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/index'
 import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes/__authted/$org/telmentary/$projectId/logs'
 import { Route as _authtedOrgTelmentaryProjectIdAnalyticsRouteImport } from './routes/__authted/$org/telmentary/$projectId/analytics'
@@ -50,11 +57,51 @@ const _authtedOrgTelmentaryRoute = _authtedOrgTelmentaryRouteImport.update({
   path: '/telmentary',
   getParentRoute: () => _authtedOrgRoute,
 } as any)
+const _authtedOrgSettingsRoute = _authtedOrgSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => _authtedOrgRoute,
+} as any)
+const _authtedOrgSettingsIndexRoute =
+  _authtedOrgSettingsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => _authtedOrgSettingsRoute,
+  } as any)
 const _authtedOrgTelmentaryProjectIdRoute =
   _authtedOrgTelmentaryProjectIdRouteImport.update({
     id: '/$projectId',
     path: '/$projectId',
     getParentRoute: () => _authtedOrgTelmentaryRoute,
+  } as any)
+const _authtedOrgSettingsTeamRoute = _authtedOrgSettingsTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => _authtedOrgSettingsRoute,
+} as any)
+const _authtedOrgSettingsSupportRoute =
+  _authtedOrgSettingsSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => _authtedOrgSettingsRoute,
+  } as any)
+const _authtedOrgSettingsSecurityRoute =
+  _authtedOrgSettingsSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => _authtedOrgSettingsRoute,
+  } as any)
+const _authtedOrgSettingsGeneralRoute =
+  _authtedOrgSettingsGeneralRouteImport.update({
+    id: '/general',
+    path: '/general',
+    getParentRoute: () => _authtedOrgSettingsRoute,
+  } as any)
+const _authtedOrgSettingsBillingRoute =
+  _authtedOrgSettingsBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
+    getParentRoute: () => _authtedOrgSettingsRoute,
   } as any)
 const _authtedOrgTelmentaryProjectIdIndexRoute =
   _authtedOrgTelmentaryProjectIdIndexRouteImport.update({
@@ -85,9 +132,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/$org/': typeof _authtedOrgIndexRoute
+  '/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
+  '/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
+  '/$org/settings/security': typeof _authtedOrgSettingsSecurityRoute
+  '/$org/settings/support': typeof _authtedOrgSettingsSupportRoute
+  '/$org/settings/team': typeof _authtedOrgSettingsTeamRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
+  '/$org/settings/': typeof _authtedOrgSettingsIndexRoute
   '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
@@ -98,6 +152,12 @@ export interface FileRoutesByTo {
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/$org': typeof _authtedOrgIndexRoute
+  '/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
+  '/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
+  '/$org/settings/security': typeof _authtedOrgSettingsSecurityRoute
+  '/$org/settings/support': typeof _authtedOrgSettingsSupportRoute
+  '/$org/settings/team': typeof _authtedOrgSettingsTeamRoute
+  '/$org/settings': typeof _authtedOrgSettingsIndexRoute
   '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
@@ -109,9 +169,16 @@ export interface FileRoutesById {
   '/__authed': typeof _authedRoute
   '/__authted/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/__authted/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
   '/__authted/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/__authted/$org/': typeof _authtedOrgIndexRoute
+  '/__authted/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
+  '/__authted/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
+  '/__authted/$org/settings/security': typeof _authtedOrgSettingsSecurityRoute
+  '/__authted/$org/settings/support': typeof _authtedOrgSettingsSupportRoute
+  '/__authted/$org/settings/team': typeof _authtedOrgSettingsTeamRoute
   '/__authted/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
+  '/__authted/$org/settings/': typeof _authtedOrgSettingsIndexRoute
   '/__authted/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/__authted/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
@@ -123,9 +190,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$org'
     | '/api/demo-names'
+    | '/$org/settings'
     | '/$org/telmentary'
     | '/$org/'
+    | '/$org/settings/billing'
+    | '/$org/settings/general'
+    | '/$org/settings/security'
+    | '/$org/settings/support'
+    | '/$org/settings/team'
     | '/$org/telmentary/$projectId'
+    | '/$org/settings/'
     | '/$org/telmentary/$projectId/alerts'
     | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
@@ -136,6 +210,12 @@ export interface FileRouteTypes {
     | '/api/demo-names'
     | '/$org/telmentary'
     | '/$org'
+    | '/$org/settings/billing'
+    | '/$org/settings/general'
+    | '/$org/settings/security'
+    | '/$org/settings/support'
+    | '/$org/settings/team'
+    | '/$org/settings'
     | '/$org/telmentary/$projectId/alerts'
     | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
@@ -146,9 +226,16 @@ export interface FileRouteTypes {
     | '/__authed'
     | '/__authted/$org'
     | '/api/demo-names'
+    | '/__authted/$org/settings'
     | '/__authted/$org/telmentary'
     | '/__authted/$org/'
+    | '/__authted/$org/settings/billing'
+    | '/__authted/$org/settings/general'
+    | '/__authted/$org/settings/security'
+    | '/__authted/$org/settings/support'
+    | '/__authted/$org/settings/team'
     | '/__authted/$org/telmentary/$projectId'
+    | '/__authted/$org/settings/'
     | '/__authted/$org/telmentary/$projectId/alerts'
     | '/__authted/$org/telmentary/$projectId/analytics'
     | '/__authted/$org/telmentary/$projectId/logs'
@@ -206,12 +293,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authtedOrgTelmentaryRouteImport
       parentRoute: typeof _authtedOrgRoute
     }
+    '/__authted/$org/settings': {
+      id: '/__authted/$org/settings'
+      path: '/settings'
+      fullPath: '/$org/settings'
+      preLoaderRoute: typeof _authtedOrgSettingsRouteImport
+      parentRoute: typeof _authtedOrgRoute
+    }
+    '/__authted/$org/settings/': {
+      id: '/__authted/$org/settings/'
+      path: '/'
+      fullPath: '/$org/settings/'
+      preLoaderRoute: typeof _authtedOrgSettingsIndexRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
+    }
     '/__authted/$org/telmentary/$projectId': {
       id: '/__authted/$org/telmentary/$projectId'
       path: '/$projectId'
       fullPath: '/$org/telmentary/$projectId'
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdRouteImport
       parentRoute: typeof _authtedOrgTelmentaryRoute
+    }
+    '/__authted/$org/settings/team': {
+      id: '/__authted/$org/settings/team'
+      path: '/team'
+      fullPath: '/$org/settings/team'
+      preLoaderRoute: typeof _authtedOrgSettingsTeamRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
+    }
+    '/__authted/$org/settings/support': {
+      id: '/__authted/$org/settings/support'
+      path: '/support'
+      fullPath: '/$org/settings/support'
+      preLoaderRoute: typeof _authtedOrgSettingsSupportRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
+    }
+    '/__authted/$org/settings/security': {
+      id: '/__authted/$org/settings/security'
+      path: '/security'
+      fullPath: '/$org/settings/security'
+      preLoaderRoute: typeof _authtedOrgSettingsSecurityRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
+    }
+    '/__authted/$org/settings/general': {
+      id: '/__authted/$org/settings/general'
+      path: '/general'
+      fullPath: '/$org/settings/general'
+      preLoaderRoute: typeof _authtedOrgSettingsGeneralRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
+    }
+    '/__authted/$org/settings/billing': {
+      id: '/__authted/$org/settings/billing'
+      path: '/billing'
+      fullPath: '/$org/settings/billing'
+      preLoaderRoute: typeof _authtedOrgSettingsBillingRouteImport
+      parentRoute: typeof _authtedOrgSettingsRoute
     }
     '/__authted/$org/telmentary/$projectId/': {
       id: '/__authted/$org/telmentary/$projectId/'
@@ -243,6 +379,27 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface _authtedOrgSettingsRouteChildren {
+  _authtedOrgSettingsBillingRoute: typeof _authtedOrgSettingsBillingRoute
+  _authtedOrgSettingsGeneralRoute: typeof _authtedOrgSettingsGeneralRoute
+  _authtedOrgSettingsSecurityRoute: typeof _authtedOrgSettingsSecurityRoute
+  _authtedOrgSettingsSupportRoute: typeof _authtedOrgSettingsSupportRoute
+  _authtedOrgSettingsTeamRoute: typeof _authtedOrgSettingsTeamRoute
+  _authtedOrgSettingsIndexRoute: typeof _authtedOrgSettingsIndexRoute
+}
+
+const _authtedOrgSettingsRouteChildren: _authtedOrgSettingsRouteChildren = {
+  _authtedOrgSettingsBillingRoute: _authtedOrgSettingsBillingRoute,
+  _authtedOrgSettingsGeneralRoute: _authtedOrgSettingsGeneralRoute,
+  _authtedOrgSettingsSecurityRoute: _authtedOrgSettingsSecurityRoute,
+  _authtedOrgSettingsSupportRoute: _authtedOrgSettingsSupportRoute,
+  _authtedOrgSettingsTeamRoute: _authtedOrgSettingsTeamRoute,
+  _authtedOrgSettingsIndexRoute: _authtedOrgSettingsIndexRoute,
+}
+
+const _authtedOrgSettingsRouteWithChildren =
+  _authtedOrgSettingsRoute._addFileChildren(_authtedOrgSettingsRouteChildren)
 
 interface _authtedOrgTelmentaryProjectIdRouteChildren {
   _authtedOrgTelmentaryProjectIdAlertsRoute: typeof _authtedOrgTelmentaryProjectIdAlertsRoute
@@ -283,11 +440,13 @@ const _authtedOrgTelmentaryRouteWithChildren =
   )
 
 interface _authtedOrgRouteChildren {
+  _authtedOrgSettingsRoute: typeof _authtedOrgSettingsRouteWithChildren
   _authtedOrgTelmentaryRoute: typeof _authtedOrgTelmentaryRouteWithChildren
   _authtedOrgIndexRoute: typeof _authtedOrgIndexRoute
 }
 
 const _authtedOrgRouteChildren: _authtedOrgRouteChildren = {
+  _authtedOrgSettingsRoute: _authtedOrgSettingsRouteWithChildren,
   _authtedOrgTelmentaryRoute: _authtedOrgTelmentaryRouteWithChildren,
   _authtedOrgIndexRoute: _authtedOrgIndexRoute,
 }
