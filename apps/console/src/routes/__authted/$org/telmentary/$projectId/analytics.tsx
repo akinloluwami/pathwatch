@@ -225,7 +225,9 @@ function RouteComponent() {
                     borderRadius: '0',
                     fontFamily: 'monospace',
                     fontSize: '12px',
+                    color: '#fff',
                   }}
+                  itemStyle={{ color: '#fff' }}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -271,7 +273,11 @@ function RouteComponent() {
                 stroke="#6b7280"
                 style={{ fontSize: '11px', fontFamily: 'monospace' }}
               />
-              <YAxis stroke="#6b7280" style={{ fontSize: '11px', fontFamily: 'monospace' }} />
+              <YAxis
+                stroke="#6b7280"
+                style={{ fontSize: '11px', fontFamily: 'monospace' }}
+                domain={[0, 10]}
+              />
               <Tooltip
                 contentStyle={{
                   background: '#000',
@@ -279,10 +285,19 @@ function RouteComponent() {
                   borderRadius: '0',
                   fontFamily: 'monospace',
                   fontSize: '12px',
+                  color: '#fff',
                 }}
                 labelStyle={{ color: '#9ca3af' }}
+                itemStyle={{ color: '#fff' }}
               />
-              <Line type="monotone" dataKey="errorRate" stroke="#ef4444" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="errorRate"
+                stroke="#ef4444"
+                strokeWidth={2}
+                dot={{ fill: '#ef4444', r: 3 }}
+                activeDot={{ r: 5 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -314,7 +329,9 @@ function RouteComponent() {
                     borderRadius: '0',
                     fontFamily: 'monospace',
                     fontSize: '12px',
+                    color: '#fff',
                   }}
+                  itemStyle={{ color: '#fff' }}
                 />
               </PieChart>
             </ResponsiveContainer>
