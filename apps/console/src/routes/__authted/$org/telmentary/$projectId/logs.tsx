@@ -2,10 +2,30 @@ import { Button } from '@/components/ui/button';
 import Brackets from '@/components/ui/brackets';
 import { faker } from '@faker-js/faker';
 import { createFileRoute } from '@tanstack/react-router';
-import { RefreshCcw, Search } from 'lucide-react';
+import { RefreshCcw, Search, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
+
+type TimeInterval = '15m' | '1h' | '6h' | '24h' | '7d' | 'all';
+
+const INTERVAL_LABELS: Record<TimeInterval, string> = {
+  '15m': 'Last 15 min',
+  '1h': 'Last 1 hour',
+  '6h': 'Last 6 hours',
+  '24h': 'Last 24 hours',
+  '7d': 'Last 7 days',
+  all: 'All time',
+};
+
+const INTERVAL_MS: Record<TimeInterval, number | null> = {
+  '15m': 15 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  '6h': 6 * 60 * 60 * 1000,
+  '24h': 24 * 60 * 60 * 1000,
+  '7d': 7 * 24 * 60 * 60 * 1000,
+  all: null,
+};
 
 type LogEntry = {
   id: string;
@@ -49,11 +69,22 @@ function RouteComponent() {
   const [logs, setLogs] = useState<LogEntry[]>(() => generateLogs());
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLevels, setActiveLevels] = useState<LogLevel[]>([...LEVEL_ORDER]);
+  const [timeInterval, setTimeInterval] = useState<TimeInterval>('24h');
+  const [isIntervalOpen, setIsIntervalOpen] = useState(false);
 
-  const stats = useMemo(() => computeStats(logs), [logs]);
+  const timeFilteredLogs = useMemo(() => {
+    const intervalMs = INTERVAL_MS[timeInterval];
+    if (intervalMs === null) {
+      return logs;
+    }
+    const cutoffTime = Date.now() - intervalMs;
+    return logs.filter((log) => log.timestamp.getTime() >= cutoffTime);
+  }, [logs, timeInterval]);
+
+  const stats = useMemo(() => computeStats(timeFilteredLogs), [timeFilteredLogs]);
   const filteredLogs = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return logs.filter((log) => {
+    return timeFilteredLogs.filter((log) => {
       if (!activeLevels.includes(log.level)) {
         return false;
       }
@@ -71,7 +102,7 @@ function RouteComponent() {
         String(log.status).includes(term)
       );
     });
-  }, [logs, activeLevels, searchTerm]);
+  }, [timeFilteredLogs, activeLevels, searchTerm]);
 
   const newestLog = logs[0];
   const timeFormatter = useMemo(
@@ -107,14 +138,43 @@ function RouteComponent() {
     <div className="flex-1 h-[calc(100vh-2.5rem)] border border-gray-800 bg-black/40 relative flex flex-col overflow-hidden">
       <Brackets />
 
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
-        <div>
-          <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">Telemetry // Logs</p>
-          <div className="mt-1 flex items-center gap-3 text-sm text-gray-300">
-            <span className="font-medium text-white">{projectId}</span>
-            <span className="text-gray-600">/</span>
-            <span className="uppercase text-xs tracking-[0.3em] text-gray-500">Org {org}</span>
-          </div>
+      <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
+        <div className="relative">
+          <button
+            onClick={() => setIsIntervalOpen(!isIntervalOpen)}
+            className="relative h-9 w-[180px] border border-gray-700 bg-black/40 px-3 flex items-center justify-between text-xs uppercase tracking-[0.2em] text-gray-300 hover:bg-white/5 transition-colors"
+          >
+            <Brackets />
+            <span>{INTERVAL_LABELS[timeInterval]}</span>
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${isIntervalOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+          {isIntervalOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setIsIntervalOpen(false)} />
+              <div className="absolute top-full right-0 mt-1 w-[180px] border border-gray-700 bg-black/95 backdrop-blur-sm z-20">
+                <Brackets />
+                {(Object.keys(INTERVAL_LABELS) as TimeInterval[]).map((interval) => (
+                  <button
+                    key={interval}
+                    onClick={() => {
+                      setTimeInterval(interval);
+                      setIsIntervalOpen(false);
+                    }}
+                    className={`w-full px-3 py-2 text-left text-xs uppercase tracking-[0.2em] transition-colors ${
+                      timeInterval === interval
+                        ? 'bg-white/10 text-white'
+                        : 'text-gray-400 hover:bg-white/5 hover:text-gray-300'
+                    }`}
+                  >
+                    {INTERVAL_LABELS[interval]}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="text-right text-xs text-gray-400">
@@ -130,7 +190,7 @@ function RouteComponent() {
             Total events: <span className="text-white">{stats.total}</span>
           </p>
         </div>
-      </header>
+      </div>
 
       <section className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-shrink-0">
@@ -165,7 +225,7 @@ function RouteComponent() {
                   key={level}
                   onClick={() => handleToggleLevel(level)}
                   showBrackets={isActive}
-                  className={`${isActive ? 'bg-white/10 text-white' : 'bg-black/20 text-gray-400'} min-w-[96px] justify-center px-4 py-0 uppercase tracking-[0.2em] text-[11px] border-gray-700`}
+                  className={`${isActive ? 'bg-white/10 text-white' : 'bg-black/20 text-gray-400'} w-[80px] justify-center px-3 py-0 uppercase tracking-[0.2em] text-[11px] border-gray-700 transition-colors`}
                 >
                   {LEVEL_LABELS[level]}
                 </Button>
@@ -189,9 +249,11 @@ function RouteComponent() {
                 icon={<RefreshCcw size={14} />}
                 onClick={handleRefresh}
                 showBrackets={false}
-                className="w-10 justify-center border-gray-700 text-gray-200 hover:bg-white/10"
+                iconOnly
+                ariaLabel="Refresh logs"
+                className="w-10 border-gray-700 text-gray-200"
               >
-                <span className="sr-only">Refresh mock data</span>
+                Refresh logs
               </Button>
               <span className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
                 Showing {filteredLogs.length} / {stats.total}
@@ -204,16 +266,22 @@ function RouteComponent() {
           <Brackets />
           {filteredLogs.length ? (
             <div className="flex-1 min-h-0 overflow-auto">
-              <table className="w-full min-w-[54rem] border-collapse text-left text-sm table-fixed">
+              <table className="w-full min-w-[68rem] border-collapse text-left text-sm">
                 <thead className="sticky top-0 bg-black/80 text-[11px] uppercase tracking-[0.3em] text-gray-500">
                   <tr>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Time</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Level</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Status</th>
                     <th className="border-b border-gray-800 px-4 py-3 font-normal">Route</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Latency</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Request</th>
-                    <th className="border-b border-gray-800 px-4 py-3 font-normal">Response</th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal text-right">
+                      Latency
+                    </th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal text-right">
+                      Request
+                    </th>
+                    <th className="border-b border-gray-800 px-4 py-3 font-normal text-right">
+                      Response
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -238,18 +306,18 @@ function RouteComponent() {
                       >
                         {log.status}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-[#f45817]">
-                        <div className="max-w-[18rem] truncate">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-200">
+                        <div className="leading-relaxed break-words">
                           {log.method} {log.path}
                         </div>
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap text-right">
                         {formatLatency(log.latencyMs)}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap text-right">
                         {formatBytes(log.requestSize)}
                       </td>
-                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap">
+                      <td className="px-4 py-3 font-mono text-xs text-gray-300 whitespace-nowrap text-right">
                         {formatBytes(log.responseSize)}
                       </td>
                     </tr>
@@ -343,7 +411,7 @@ function generateLogs(): LogEntry[] {
       level,
       status,
       method,
-      path: `${path}${querySuffix}`,
+      path,
       host,
       url,
       latencyMs,
