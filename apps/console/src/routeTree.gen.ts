@@ -18,6 +18,7 @@ import { Route as _authtedOrgTelmentaryRouteImport } from './routes/__authted/$o
 import { Route as _authtedOrgTelmentaryProjectIdRouteImport } from './routes/__authted/$org/telmentary/$projectId'
 import { Route as _authtedOrgTelmentaryProjectIdIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/index'
 import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes/__authted/$org/telmentary/$projectId/logs'
+import { Route as _authtedOrgTelmentaryProjectIdAnalyticsRouteImport } from './routes/__authted/$org/telmentary/$projectId/analytics'
 import { Route as _authtedOrgTelmentaryProjectIdAlertsRouteImport } from './routes/__authted/$org/telmentary/$projectId/alerts'
 
 const _authedRoute = _authedRouteImport.update({
@@ -67,6 +68,12 @@ const _authtedOrgTelmentaryProjectIdLogsRoute =
     path: '/logs',
     getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
   } as any)
+const _authtedOrgTelmentaryProjectIdAnalyticsRoute =
+  _authtedOrgTelmentaryProjectIdAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
+  } as any)
 const _authtedOrgTelmentaryProjectIdAlertsRoute =
   _authtedOrgTelmentaryProjectIdAlertsRouteImport.update({
     id: '/alerts',
@@ -82,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/$org/': typeof _authtedOrgIndexRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
   '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
+  '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -91,6 +99,7 @@ export interface FileRoutesByTo {
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
   '/$org': typeof _authtedOrgIndexRoute
   '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
+  '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -104,6 +113,7 @@ export interface FileRoutesById {
   '/__authted/$org/': typeof _authtedOrgIndexRoute
   '/__authted/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdRouteWithChildren
   '/__authted/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
+  '/__authted/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/__authted/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/$org/'
     | '/$org/telmentary/$projectId'
     | '/$org/telmentary/$projectId/alerts'
+    | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId/'
   fileRoutesByTo: FileRoutesByTo
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/$org/telmentary'
     | '/$org'
     | '/$org/telmentary/$projectId/alerts'
+    | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId'
   id:
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
     | '/__authted/$org/'
     | '/__authted/$org/telmentary/$projectId'
     | '/__authted/$org/telmentary/$projectId/alerts'
+    | '/__authted/$org/telmentary/$projectId/analytics'
     | '/__authted/$org/telmentary/$projectId/logs'
     | '/__authted/$org/telmentary/$projectId/'
   fileRoutesById: FileRoutesById
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdLogsRouteImport
       parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
     }
+    '/__authted/$org/telmentary/$projectId/analytics': {
+      id: '/__authted/$org/telmentary/$projectId/analytics'
+      path: '/analytics'
+      fullPath: '/$org/telmentary/$projectId/analytics'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdAnalyticsRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
+    }
     '/__authted/$org/telmentary/$projectId/alerts': {
       id: '/__authted/$org/telmentary/$projectId/alerts'
       path: '/alerts'
@@ -226,6 +246,7 @@ declare module '@tanstack/react-router' {
 
 interface _authtedOrgTelmentaryProjectIdRouteChildren {
   _authtedOrgTelmentaryProjectIdAlertsRoute: typeof _authtedOrgTelmentaryProjectIdAlertsRoute
+  _authtedOrgTelmentaryProjectIdAnalyticsRoute: typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   _authtedOrgTelmentaryProjectIdLogsRoute: typeof _authtedOrgTelmentaryProjectIdLogsRoute
   _authtedOrgTelmentaryProjectIdIndexRoute: typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
@@ -234,6 +255,8 @@ const _authtedOrgTelmentaryProjectIdRouteChildren: _authtedOrgTelmentaryProjectI
   {
     _authtedOrgTelmentaryProjectIdAlertsRoute:
       _authtedOrgTelmentaryProjectIdAlertsRoute,
+    _authtedOrgTelmentaryProjectIdAnalyticsRoute:
+      _authtedOrgTelmentaryProjectIdAnalyticsRoute,
     _authtedOrgTelmentaryProjectIdLogsRoute:
       _authtedOrgTelmentaryProjectIdLogsRoute,
     _authtedOrgTelmentaryProjectIdIndexRoute:
