@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Settings2,
   TriangleAlert,
+  BarChart3,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -88,6 +89,11 @@ function RouteComponent() {
       name: 'Logs',
       path: '/$org/telmentary/$projectId/logs',
       icon: <BetweenHorizonalStart size={16} />,
+    },
+    {
+      name: 'Analytics',
+      path: '/$org/telmentary/$projectId/analytics',
+      icon: <BarChart3 size={16} />,
     },
     {
       name: 'Alerts',
