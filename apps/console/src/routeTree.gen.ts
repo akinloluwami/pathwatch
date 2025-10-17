@@ -30,7 +30,12 @@ import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes
 import { Route as _authtedOrgTelmentaryProjectIdAnalyticsRouteImport } from './routes/__authted/$org/telmentary/$projectId/analytics'
 import { Route as _authtedOrgTelmentaryProjectIdAlertsRouteImport } from './routes/__authted/$org/telmentary/$projectId/alerts'
 import { Route as _authtedOrgTelmentaryProjectIdSettingsIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/index'
+import { Route as _authtedOrgTelmentaryProjectIdSettingsIntegrationsRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/integrations'
 import { Route as _authtedOrgTelmentaryProjectIdSettingsGeneralRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/general'
+import { Route as _authtedOrgTelmentaryProjectIdSettingsDataRetentionRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/data-retention'
+import { Route as _authtedOrgTelmentaryProjectIdSettingsApiKeysRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/api-keys'
+import { Route as _authtedOrgTelmentaryProjectIdSettingsAlertsRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/alerts'
+import { Route as _authtedOrgTelmentaryProjectIdSettingsAccessControlRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/access-control'
 
 const _authedRoute = _authedRouteImport.update({
   id: '/__authed',
@@ -149,10 +154,40 @@ const _authtedOrgTelmentaryProjectIdSettingsIndexRoute =
     path: '/',
     getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
   } as any)
+const _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute =
+  _authtedOrgTelmentaryProjectIdSettingsIntegrationsRouteImport.update({
+    id: '/integrations',
+    path: '/integrations',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
+  } as any)
 const _authtedOrgTelmentaryProjectIdSettingsGeneralRoute =
   _authtedOrgTelmentaryProjectIdSettingsGeneralRouteImport.update({
     id: '/general',
     path: '/general',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
+  } as any)
+const _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute =
+  _authtedOrgTelmentaryProjectIdSettingsDataRetentionRouteImport.update({
+    id: '/data-retention',
+    path: '/data-retention',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
+  } as any)
+const _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute =
+  _authtedOrgTelmentaryProjectIdSettingsApiKeysRouteImport.update({
+    id: '/api-keys',
+    path: '/api-keys',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
+  } as any)
+const _authtedOrgTelmentaryProjectIdSettingsAlertsRoute =
+  _authtedOrgTelmentaryProjectIdSettingsAlertsRouteImport.update({
+    id: '/alerts',
+    path: '/alerts',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
+  } as any)
+const _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute =
+  _authtedOrgTelmentaryProjectIdSettingsAccessControlRouteImport.update({
+    id: '/access-control',
+    path: '/access-control',
     getParentRoute: () => _authtedOrgTelmentaryProjectIdSettingsRoute,
   } as any)
 
@@ -176,7 +211,12 @@ export interface FileRoutesByFullPath {
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId/settings': typeof _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren
   '/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
+  '/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
+  '/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
+  '/$org/telmentary/$projectId/settings/api-keys': typeof _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute
+  '/$org/telmentary/$projectId/settings/data-retention': typeof _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute
   '/$org/telmentary/$projectId/settings/general': typeof _authtedOrgTelmentaryProjectIdSettingsGeneralRoute
+  '/$org/telmentary/$projectId/settings/integrations': typeof _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute
   '/$org/telmentary/$projectId/settings/': typeof _authtedOrgTelmentaryProjectIdSettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -194,7 +234,12 @@ export interface FileRoutesByTo {
   '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
+  '/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
+  '/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
+  '/$org/telmentary/$projectId/settings/api-keys': typeof _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute
+  '/$org/telmentary/$projectId/settings/data-retention': typeof _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute
   '/$org/telmentary/$projectId/settings/general': typeof _authtedOrgTelmentaryProjectIdSettingsGeneralRoute
+  '/$org/telmentary/$projectId/settings/integrations': typeof _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute
   '/$org/telmentary/$projectId/settings': typeof _authtedOrgTelmentaryProjectIdSettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -219,7 +264,12 @@ export interface FileRoutesById {
   '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/__authted/$org/telmentary/$projectId/settings': typeof _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren
   '/__authted/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
+  '/__authted/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
+  '/__authted/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
+  '/__authted/$org/telmentary/$projectId/settings/api-keys': typeof _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute
+  '/__authted/$org/telmentary/$projectId/settings/data-retention': typeof _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute
   '/__authted/$org/telmentary/$projectId/settings/general': typeof _authtedOrgTelmentaryProjectIdSettingsGeneralRoute
+  '/__authted/$org/telmentary/$projectId/settings/integrations': typeof _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute
   '/__authted/$org/telmentary/$projectId/settings/': typeof _authtedOrgTelmentaryProjectIdSettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -244,7 +294,12 @@ export interface FileRouteTypes {
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId/settings'
     | '/$org/telmentary/$projectId/'
+    | '/$org/telmentary/$projectId/settings/access-control'
+    | '/$org/telmentary/$projectId/settings/alerts'
+    | '/$org/telmentary/$projectId/settings/api-keys'
+    | '/$org/telmentary/$projectId/settings/data-retention'
     | '/$org/telmentary/$projectId/settings/general'
+    | '/$org/telmentary/$projectId/settings/integrations'
     | '/$org/telmentary/$projectId/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -262,7 +317,12 @@ export interface FileRouteTypes {
     | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId'
+    | '/$org/telmentary/$projectId/settings/access-control'
+    | '/$org/telmentary/$projectId/settings/alerts'
+    | '/$org/telmentary/$projectId/settings/api-keys'
+    | '/$org/telmentary/$projectId/settings/data-retention'
     | '/$org/telmentary/$projectId/settings/general'
+    | '/$org/telmentary/$projectId/settings/integrations'
     | '/$org/telmentary/$projectId/settings'
   id:
     | '__root__'
@@ -286,7 +346,12 @@ export interface FileRouteTypes {
     | '/__authted/$org/telmentary/$projectId/logs'
     | '/__authted/$org/telmentary/$projectId/settings'
     | '/__authted/$org/telmentary/$projectId/'
+    | '/__authted/$org/telmentary/$projectId/settings/access-control'
+    | '/__authted/$org/telmentary/$projectId/settings/alerts'
+    | '/__authted/$org/telmentary/$projectId/settings/api-keys'
+    | '/__authted/$org/telmentary/$projectId/settings/data-retention'
     | '/__authted/$org/telmentary/$projectId/settings/general'
+    | '/__authted/$org/telmentary/$projectId/settings/integrations'
     | '/__authted/$org/telmentary/$projectId/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -446,11 +511,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsIndexRouteImport
       parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
     }
+    '/__authted/$org/telmentary/$projectId/settings/integrations': {
+      id: '/__authted/$org/telmentary/$projectId/settings/integrations'
+      path: '/integrations'
+      fullPath: '/$org/telmentary/$projectId/settings/integrations'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsIntegrationsRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
+    }
     '/__authted/$org/telmentary/$projectId/settings/general': {
       id: '/__authted/$org/telmentary/$projectId/settings/general'
       path: '/general'
       fullPath: '/$org/telmentary/$projectId/settings/general'
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsGeneralRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
+    }
+    '/__authted/$org/telmentary/$projectId/settings/data-retention': {
+      id: '/__authted/$org/telmentary/$projectId/settings/data-retention'
+      path: '/data-retention'
+      fullPath: '/$org/telmentary/$projectId/settings/data-retention'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsDataRetentionRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
+    }
+    '/__authted/$org/telmentary/$projectId/settings/api-keys': {
+      id: '/__authted/$org/telmentary/$projectId/settings/api-keys'
+      path: '/api-keys'
+      fullPath: '/$org/telmentary/$projectId/settings/api-keys'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsApiKeysRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
+    }
+    '/__authted/$org/telmentary/$projectId/settings/alerts': {
+      id: '/__authted/$org/telmentary/$projectId/settings/alerts'
+      path: '/alerts'
+      fullPath: '/$org/telmentary/$projectId/settings/alerts'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
+    }
+    '/__authted/$org/telmentary/$projectId/settings/access-control': {
+      id: '/__authted/$org/telmentary/$projectId/settings/access-control'
+      path: '/access-control'
+      fullPath: '/$org/telmentary/$projectId/settings/access-control'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRouteImport
       parentRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRoute
     }
   }
@@ -478,14 +578,29 @@ const _authtedOrgSettingsRouteWithChildren =
   _authtedOrgSettingsRoute._addFileChildren(_authtedOrgSettingsRouteChildren)
 
 interface _authtedOrgTelmentaryProjectIdSettingsRouteChildren {
+  _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute: typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
+  _authtedOrgTelmentaryProjectIdSettingsAlertsRoute: typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
+  _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute: typeof _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute
+  _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute: typeof _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute
   _authtedOrgTelmentaryProjectIdSettingsGeneralRoute: typeof _authtedOrgTelmentaryProjectIdSettingsGeneralRoute
+  _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute: typeof _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute
   _authtedOrgTelmentaryProjectIdSettingsIndexRoute: typeof _authtedOrgTelmentaryProjectIdSettingsIndexRoute
 }
 
 const _authtedOrgTelmentaryProjectIdSettingsRouteChildren: _authtedOrgTelmentaryProjectIdSettingsRouteChildren =
   {
+    _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute:
+      _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute,
+    _authtedOrgTelmentaryProjectIdSettingsAlertsRoute:
+      _authtedOrgTelmentaryProjectIdSettingsAlertsRoute,
+    _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute:
+      _authtedOrgTelmentaryProjectIdSettingsApiKeysRoute,
+    _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute:
+      _authtedOrgTelmentaryProjectIdSettingsDataRetentionRoute,
     _authtedOrgTelmentaryProjectIdSettingsGeneralRoute:
       _authtedOrgTelmentaryProjectIdSettingsGeneralRoute,
+    _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute:
+      _authtedOrgTelmentaryProjectIdSettingsIntegrationsRoute,
     _authtedOrgTelmentaryProjectIdSettingsIndexRoute:
       _authtedOrgTelmentaryProjectIdSettingsIndexRoute,
   }

@@ -36,24 +36,32 @@ export function Button({
   const sizeClasses = size === 'sm' ? 'h-8 text-[11px]' : 'h-10 text-xs';
   const layoutClasses = iconOnly
     ? 'justify-center gap-0 px-0 aspect-square'
-    : 'gap-x-2 w-full px-0';
+    : rawChildren
+      ? 'w-full gap-0'
+      : 'gap-x-2 w-full px-0';
   const borderColor = intent === 'ghost' ? 'border-gray-800' : 'border-gray-400';
   const hoverClass = intent === 'ghost' ? 'hover:bg-white/5' : 'hover:bg-white/10';
 
-  const buttonClasses = [
+  const buttonClassList = [
     baseClasses,
     sizeClasses,
     layoutClasses,
     borderColor,
     hoverClass,
     className,
-  ]
-    .join(' ')
-    .trim();
+  ];
+
+  if (icon && !iconOnly) {
+    buttonClassList.push('pl-0');
+  }
+
+  const buttonClasses = buttonClassList.join(' ').trim();
 
   const iconWrapperClasses = iconOnly
     ? 'flex h-full aspect-square items-center justify-center'
-    : 'bg-white/10 h-full aspect-square flex items-center justify-center px-2';
+    : rawChildren
+      ? 'bg-white/10 h-full aspect-square flex items-center justify-center'
+      : 'bg-white/10 h-full aspect-square flex items-center justify-center px-2';
 
   const labelForScreenReaders = ariaLabel ?? (typeof children === 'string' ? children : undefined);
 
@@ -71,7 +79,7 @@ export function Button({
         {iconOnly ? (
           <span className="sr-only">{labelForScreenReaders ?? 'Button'}</span>
         ) : rawChildren ? (
-          children
+          <span className="flex-1">{children}</span>
         ) : (
           <span className={`uppercase text-xs ${icon ? 'pr-2' : 'px-4'}`}>{children}</span>
         )}
