@@ -13,6 +13,8 @@ interface ButtonProps {
   intent?: 'primary' | 'ghost';
   ariaExpanded?: boolean;
   rawChildren?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
 export function Button({
@@ -27,6 +29,8 @@ export function Button({
   intent = 'primary',
   ariaExpanded,
   rawChildren = false,
+  type = 'button',
+  disabled = false,
 }: ButtonProps) {
   const baseClasses = 'flex items-center border transition-colors';
   const sizeClasses = size === 'sm' ? 'h-8 text-[11px]' : 'h-10 text-xs';
@@ -60,6 +64,8 @@ export function Button({
         className={buttonClasses}
         aria-label={iconOnly ? labelForScreenReaders : ariaLabel}
         aria-expanded={ariaExpanded}
+        type={type}
+        disabled={disabled}
       >
         {icon && <span className={iconWrapperClasses}>{icon}</span>}
         {iconOnly ? (

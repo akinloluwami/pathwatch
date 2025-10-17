@@ -1,4 +1,5 @@
 import Brackets from '@/components/ui/brackets';
+import { TelemetryLayout } from '@/components/layouts/telemetry-layout';
 import { createFileRoute } from '@tanstack/react-router';
 import { TrendingUp, TrendingDown, Activity, ChevronDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -52,21 +53,11 @@ function RouteComponent() {
   const cacheHitData = useMemo(() => generateCacheHitData(), []);
 
   return (
-    <div className="flex-1 h-[calc(100vh-2.5rem)] border border-gray-800 bg-black/40 relative flex flex-col overflow-hidden">
-      <Brackets />
-
-      <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between bg-black/60 flex-shrink-0">
-        <div>
-          <p className="uppercase text-[11px] tracking-[0.3em] text-gray-400">
-            Telemetry // Analytics
-          </p>
-          <div className="mt-1 flex items-center gap-3 text-sm text-gray-300">
-            <span className="font-medium text-white">{projectId}</span>
-            <span className="text-gray-600">/</span>
-            <span className="uppercase text-xs tracking-[0.3em] text-gray-500">Org {org}</span>
-          </div>
-        </div>
-
+    <TelemetryLayout
+      org={org}
+      projectId={projectId}
+      section="Analytics"
+      headerAction={
         <div className="relative">
           <button
             onClick={() => setIsIntervalOpen(!isIntervalOpen)}
@@ -104,9 +95,9 @@ function RouteComponent() {
             </>
           )}
         </div>
-      </header>
-
-      <section className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-auto">
+      }
+    >
+      <div className="px-6 py-5 flex-1 min-h-0 flex flex-col gap-5 overflow-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 flex-shrink-0">
           <MetricCard
             label="Total Requests"
@@ -372,8 +363,8 @@ function RouteComponent() {
             </ResponsiveContainer>
           </ChartCard>
         </div>
-      </section>
-    </div>
+      </div>
+    </TelemetryLayout>
   );
 }
 
