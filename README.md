@@ -1,4 +1,4 @@
-> PathWatch is currently in active development.
+> ⚠️ PathWatch is currently in active development.
 
 # PathWatch
 
