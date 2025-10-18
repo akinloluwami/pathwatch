@@ -74,6 +74,7 @@ function RouteComponent() {
                 <Link key={item.label} to={item.path} params={{ org, projectId }}>
                   <Button
                     icon={item.icon}
+                    size="sm"
                     showBrackets={isActive}
                     className={`px-3 py-0 gap-3 ${
                       isActive
