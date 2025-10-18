@@ -1,3 +1,5 @@
+> PathWatch is currently in active development.
+
 # PathWatch
 
 API monitoring and analytics platform built with a modern monorepo architecture.
