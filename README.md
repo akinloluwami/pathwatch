@@ -66,15 +66,19 @@ bun run test
 ## 📦 Workspaces
 
 ### apps/collector
+
 Data collection service that ingests API monitoring data.
 
 ### apps/console
+
 Web-based dashboard for visualizing and managing API monitoring data.
 
 ### apps/query
+
 Query API service for retrieving and analyzing monitoring data.
 
 ### tinybird
+
 Analytics data pipeline configuration and deployment scripts.
 
 ## 🛠️ Scripts
@@ -88,4 +92,4 @@ Analytics data pipeline configuration and deployment scripts.
 
 ## 📝 License
 
-MIT
+Distributed under the terms of the [GNU General Public License v3.0](LICENSE).
