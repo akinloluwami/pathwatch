@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
 import { Route as _authtedOrgRouteImport } from './routes/__authted/$org'
 import { Route as _authtedOrgIndexRouteImport } from './routes/__authted/$org/index'
+import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 import { Route as _authtedOrgTelmentaryRouteImport } from './routes/__authted/$org/telmentary'
 import { Route as _authtedOrgSettingsRouteImport } from './routes/__authted/$org/settings'
 import { Route as _authtedOrgTelmentaryIndexRouteImport } from './routes/__authted/$org/telmentary/index'
@@ -60,6 +61,11 @@ const _authtedOrgIndexRoute = _authtedOrgIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => _authtedOrgRoute,
+} as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const _authtedOrgTelmentaryRoute = _authtedOrgTelmentaryRouteImport.update({
   id: '/telmentary',
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
   '/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/$org/': typeof _authtedOrgIndexRoute
   '/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
   '/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/$org': typeof _authtedOrgIndexRoute
   '/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
   '/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/__authted/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
   '/__authted/$org/telmentary': typeof _authtedOrgTelmentaryRouteWithChildren
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/__authted/$org/': typeof _authtedOrgIndexRoute
   '/__authted/$org/settings/billing': typeof _authtedOrgSettingsBillingRoute
   '/__authted/$org/settings/general': typeof _authtedOrgSettingsGeneralRoute
@@ -280,6 +289,7 @@ export interface FileRouteTypes {
     | '/api/demo-names'
     | '/$org/settings'
     | '/$org/telmentary'
+    | '/api/auth/$'
     | '/$org/'
     | '/$org/settings/billing'
     | '/$org/settings/general'
@@ -305,6 +315,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/demo-names'
+    | '/api/auth/$'
     | '/$org'
     | '/$org/settings/billing'
     | '/$org/settings/general'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/api/demo-names'
     | '/__authted/$org/settings'
     | '/__authted/$org/telmentary'
+    | '/api/auth/$'
     | '/__authted/$org/'
     | '/__authted/$org/settings/billing'
     | '/__authted/$org/settings/general'
@@ -360,6 +372,7 @@ export interface RootRouteChildren {
   _authedRoute: typeof _authedRoute
   _authtedOrgRoute: typeof _authtedOrgRouteWithChildren
   ApiDemoNamesRoute: typeof ApiDemoNamesRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$org/'
       preLoaderRoute: typeof _authtedOrgIndexRouteImport
       parentRoute: typeof _authtedOrgRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/__authted/$org/telmentary': {
       id: '/__authted/$org/telmentary'
@@ -674,6 +694,7 @@ const rootRouteChildren: RootRouteChildren = {
   _authedRoute: _authedRoute,
   _authtedOrgRoute: _authtedOrgRouteWithChildren,
   ApiDemoNamesRoute: ApiDemoNamesRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
