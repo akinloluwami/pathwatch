@@ -1,0 +1,79 @@
+{
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "timestamp",
+      "type": "timestamp",
+      "required": true
+    },
+    {
+      "name": "org_id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "project_id",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "method",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "path",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "url",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "host",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "status",
+      "type": "int32",
+      "required": true
+    },
+    {
+      "name": "latency_ms",
+      "type": "int32",
+      "required": true
+    },
+    {
+      "name": "req_size",
+      "type": "int32",
+      "required": true
+    },
+    {
+      "name": "res_size",
+      "type": "int32",
+      "required": true
+    },
+    {
+      "name": "ip",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "user_agent",
+      "type": "string",
+      "required": false
+    },
+    {
+      "name": "body",
+      "type": "string",
+      "required": false
+    }
+  ]
+}
