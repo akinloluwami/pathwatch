@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as _authedRouteImport } from './routes/__authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
@@ -38,6 +39,11 @@ import { Route as _authtedOrgTelmentaryProjectIdSettingsApiKeysRouteImport } fro
 import { Route as _authtedOrgTelmentaryProjectIdSettingsAlertsRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/alerts'
 import { Route as _authtedOrgTelmentaryProjectIdSettingsAccessControlRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings/access-control'
 
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const _authedRoute = _authedRouteImport.update({
   id: '/__authed',
   getParentRoute: () => rootRouteImport,
@@ -199,6 +205,7 @@ const _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/$org': typeof _authtedOrgIndexRoute
@@ -254,6 +262,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/__authed': typeof _authedRoute
+  '/onboarding': typeof OnboardingRoute
   '/__authted/$org': typeof _authtedOrgRouteWithChildren
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/__authted/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/onboarding'
     | '/$org'
     | '/api/demo-names'
     | '/$org/settings'
@@ -314,6 +324,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/onboarding'
     | '/api/demo-names'
     | '/api/auth/$'
     | '/$org'
@@ -339,6 +350,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/__authed'
+    | '/onboarding'
     | '/__authted/$org'
     | '/api/demo-names'
     | '/__authted/$org/settings'
@@ -370,6 +382,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   _authedRoute: typeof _authedRoute
+  OnboardingRoute: typeof OnboardingRoute
   _authtedOrgRoute: typeof _authtedOrgRouteWithChildren
   ApiDemoNamesRoute: typeof ApiDemoNamesRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -377,6 +390,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/__authed': {
       id: '/__authed'
       path: ''
@@ -692,6 +712,7 @@ const _authtedOrgRouteWithChildren = _authtedOrgRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   _authedRoute: _authedRoute,
+  OnboardingRoute: OnboardingRoute,
   _authtedOrgRoute: _authtedOrgRouteWithChildren,
   ApiDemoNamesRoute: ApiDemoNamesRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
