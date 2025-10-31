@@ -38,7 +38,7 @@ export function Button({
     ? 'justify-center gap-0 px-0 aspect-square'
     : rawChildren
       ? 'w-full gap-0'
-      : 'gap-x-2 w-full px-0';
+      : 'gap-x-2 px-0';
   const borderColor = intent === 'ghost' ? 'border-gray-800' : 'border-gray-400';
   const hoverClass = intent === 'ghost' ? 'hover:bg-white/5' : 'hover:bg-white/10';
 
@@ -81,7 +81,9 @@ export function Button({
         ) : rawChildren ? (
           <span className="flex-1">{children}</span>
         ) : (
-          <span className={`uppercase text-xs ${icon ? 'pr-2' : 'px-4'}`}>{children}</span>
+          <span className={`uppercase text-xs flex-1 text-center ${icon ? 'pr-2' : 'px-4'}`}>
+            {children}
+          </span>
         )}
       </button>
       <div className={showBrackets ? 'opacity-100' : 'opacity-0'}>
