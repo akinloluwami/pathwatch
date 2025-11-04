@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router';
+import { ToastProvider } from '../components/ui/toast';
 
 import appCss from '../styles.css?url';
 
@@ -34,7 +35,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="h-full overflow-hidden">
-        {children}
+        <ToastProvider>{children}</ToastProvider>
         <Scripts />
       </body>
     </html>
