@@ -29,7 +29,8 @@
     "react-icons": "^5.5.0",
     "tailwindcss": "^4.0.6",
     "uuid": "^13.0.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.0",
