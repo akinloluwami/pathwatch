@@ -17,6 +17,60 @@ async function ensureConnection() {
 export const Route = createFileRoute('/api/projects')({
   server: {
     handlers: {
+      GET: async ({ request }: any) => {
+        try {
+          await ensureConnection();
+
+          const url = new URL(request.url);
+          const org_slug = url.searchParams.get('org_slug');
+          const slug = url.searchParams.get('slug');
+
+          let result;
+          if (slug) {
+            // Get specific project by slug only
+            result = await db.query(
+              `SELECT id, name, slug, org_id, api_key, created_at, updated_at 
+               FROM projects 
+               WHERE slug = $1`,
+              [slug]
+            );
+
+            if (result.rows.length === 0) {
+              return Response.json({ error: 'Project not found' }, { status: 404 });
+            }
+
+            return Response.json({
+              data: result.rows[0],
+            });
+          } else if (org_slug) {
+            // Get all projects for org by org slug
+            result = await db.query(
+              `SELECT p.id, p.name, p.slug, p.org_id, p.api_key, p.created_at, p.updated_at 
+               FROM projects p
+               JOIN organization o ON p.org_id = o.id
+               WHERE o.slug = $1 
+               ORDER BY p.updated_at DESC`,
+              [org_slug]
+            );
+
+            return Response.json({
+              data: result.rows,
+            });
+          } else {
+            return Response.json(
+              { error: 'Missing required parameter: org_slug or slug' },
+              { status: 400 }
+            );
+          }
+        } catch (error) {
+          console.error('Error fetching projects:', error);
+          return Response.json(
+            { error: error instanceof Error ? error.message : 'Unknown error' },
+            { status: 500 }
+          );
+        }
+      },
+
       POST: async ({ request }: any) => {
         try {
           await ensureConnection();
