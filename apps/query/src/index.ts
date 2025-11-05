@@ -5,7 +5,6 @@ import { authenticateApiKey } from './auth-middleware';
 import { limitQuerySchema, intervalQuerySchema, requestsQuerySchema } from './route-schemas';
 import {
   handleRoot,
-  handleLogs,
   handleTotalRequests,
   handleErrorRate,
   handleAvgLatency,
@@ -22,11 +21,6 @@ const app = new Elysia()
   .use(authenticateApiKey)
 
   .get('/', handleRoot, { authenticate: true })
-
-  .get('/logs', handleLogs, {
-    authenticate: true,
-    query: limitQuerySchema,
-  })
 
   .get('/analytics/total-requests', handleTotalRequests, {
     authenticate: true,

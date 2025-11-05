@@ -9,22 +9,6 @@ export async function handleRoot({ org_id, project_id }: any) {
   };
 }
 
-export async function handleLogs({ org_id, project_id, query }: any) {
-  try {
-    const client = getDataClient();
-    const result = await client.query('ingestions_endpoint', {
-      org_id,
-      project_id,
-      limit: query?.limit || 5,
-    });
-    return { data: result.data };
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-}
-
 export async function handleTotalRequests({ org_id, project_id, query }: any) {
   try {
     const client = getDataClient();
