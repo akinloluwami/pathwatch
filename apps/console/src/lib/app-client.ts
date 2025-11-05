@@ -38,5 +38,33 @@ export const appClient = {
         return { error: 'An unexpected error occurred' };
       }
     },
+
+    list: async (orgSlug: string): Promise<ApiResponse<ProjectData[]>> => {
+      try {
+        const response = await apiClient.get<ApiResponse<ProjectData[]>>('/api/projects', {
+          params: { org_slug: orgSlug },
+        });
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+          return error.response.data;
+        }
+        return { error: 'An unexpected error occurred' };
+      }
+    },
+
+    get: async (slug: string): Promise<ApiResponse<ProjectData>> => {
+      try {
+        const response = await apiClient.get<ApiResponse<ProjectData>>('/api/projects', {
+          params: { slug },
+        });
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response) {
+          return error.response.data;
+        }
+        return { error: 'An unexpected error occurred' };
+      }
+    },
   },
 };
