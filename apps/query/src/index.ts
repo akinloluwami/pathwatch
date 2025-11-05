@@ -20,36 +20,49 @@ await initDatabase();
 
 const app = new Elysia()
   .use(authenticateApiKey)
-  .get('/logs', handleLogs)
+
   .get('/', handleRoot, { authenticate: true })
+
+  .get('/logs', handleLogs, {
+    authenticate: true,
+    query: limitQuerySchema,
+  })
+
   .get('/analytics/total-requests', handleTotalRequests, {
     authenticate: true,
     query: limitQuerySchema,
   })
+
   .get('/analytics/error-rate', handleErrorRate, {
     authenticate: true,
     query: limitQuerySchema,
   })
+
   .get('/analytics/avg-latency', handleAvgLatency, {
     authenticate: true,
     query: limitQuerySchema,
   })
+
   .get('/analytics/top-paths', handleTopPaths, {
     authenticate: true,
     query: limitQuerySchema,
   })
+
   .get('/analytics/requests-over-time', handleRequestsOverTime, {
     authenticate: true,
     query: intervalQuerySchema,
   })
+
   .get('/analytics/request-counts-by-period', handleRequestCountsByPeriod, {
     authenticate: true,
     query: intervalQuerySchema,
   })
+
   .get('/requests', handleRequests, {
     authenticate: true,
     query: requestsQuerySchema,
   })
+
   .listen(config.port);
 
 console.log(`🦊 Elysia is running at ${app.server?.hostname}:${app.server?.port}`);
