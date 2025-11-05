@@ -1,4 +1,5 @@
-import axios from "axios";
+import axios from 'axios';
+import { DataClient } from './data-client-factory';
 
 interface TinybirdResponse<T = any> {
   data: T[];
@@ -11,22 +12,16 @@ interface TinybirdResponse<T = any> {
   };
 }
 
-export class TinybirdClient {
+export class TinybirdClient implements DataClient {
   private baseUrl: string;
   private token: string;
 
-  constructor(
-    token: string,
-    baseUrl = "https://api.europe-west2.gcp.tinybird.co"
-  ) {
+  constructor(token: string, baseUrl = 'https://api.europe-west2.gcp.tinybird.co') {
     this.token = token;
     this.baseUrl = baseUrl;
   }
 
-  async query<T = any>(
-    pipeName: string,
-    params: Record<string, any> = {}
-  ): Promise<TinybirdResponse<T>> {
+  async query<T = any>(pipeName: string, params: Record<string, any> = {}): Promise<{ data: T[] }> {
     const url = `${this.baseUrl}/v0/pipes/${pipeName}.json`;
 
     try {
@@ -37,12 +32,10 @@ export class TinybirdClient {
         params,
       });
 
-      return response.data;
+      return { data: response.data.data };
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(
-          `Tinybird API error: ${error.response?.data?.error || error.message}`
-        );
+        throw new Error(`Tinybird API error: ${error.response?.data?.error || error.message}`);
       }
       throw error;
     }
