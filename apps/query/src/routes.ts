@@ -15,6 +15,8 @@ export async function handleTotalRequests({ org_id, project_id, query }: any) {
     const result = await client.query('total_requests', {
       org_id,
       project_id,
+      start_date: query.start_date,
+      end_date: query.end_date,
       limit: query.limit || 100,
     });
     return { data: result.data };
@@ -31,6 +33,8 @@ export async function handleErrorRate({ org_id, project_id, query }: any) {
     const result = await client.query('error_rate', {
       org_id,
       project_id,
+      start_date: query.start_date,
+      end_date: query.end_date,
       limit: query.limit || 100,
     });
     return { data: result.data };
@@ -47,6 +51,8 @@ export async function handleAvgLatency({ org_id, project_id, query }: any) {
     const result = await client.query('avg_latency', {
       org_id,
       project_id,
+      start_date: query.start_date,
+      end_date: query.end_date,
       limit: query.limit || 100,
     });
     return { data: result.data };
@@ -118,6 +124,7 @@ export async function handleRequests({ org_id, project_id, query }: any) {
       start_date: query.start_date,
       end_date: query.end_date,
       limit: query.limit || 100,
+      offset: query.offset || 0,
     });
     return { data: result.data };
   } catch (error) {
