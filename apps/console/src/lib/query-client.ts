@@ -1,16 +1,16 @@
 import axios from 'axios';
 
 const queryClient = axios.create({
-  baseURL: import.meta.env.VITE_QUERY_API_URL || 'http://localhost:4000',
+  baseURL: import.meta.env.VITE_QUERY_API_URL || 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 interface QueryParams {
-  org_id: string;
-  project_id: string;
   limit?: number;
+  start_date?: string;
+  end_date?: string;
 }
 
 interface IntervalQueryParams extends QueryParams {
@@ -22,6 +22,7 @@ interface RequestsQueryParams extends QueryParams {
   status?: number;
   start_date?: string;
   end_date?: string;
+  offset?: number;
 }
 
 interface ApiResponse<T> {
