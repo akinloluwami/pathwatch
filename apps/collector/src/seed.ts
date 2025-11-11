@@ -66,12 +66,46 @@ function generateLatency(status: number): number {
   return faker.number.int({ min: 50, max: 2000 });
 }
 
-function generateFakeEvent(): Omit<Event, 'api_key'> {
+function generateRequestSize(method: string): number {
+  // GET, DELETE, HEAD requests typically have small or no body
+  if (['GET', 'DELETE', 'HEAD', 'OPTIONS'].includes(method)) {
+    return faker.number.int({ min: 100, max: 500 });
+  }
+  // POST, PUT, PATCH can have larger request bodies
+  return faker.number.int({ min: 200, max: 50000 });
+}
+
+function generateResponseSize(status: number, method: string): number {
+  // HEAD requests have no response body
+  if (method === 'HEAD') {
+    return faker.number.int({ min: 0, max: 100 });
+  }
+
+  // Error responses are typically smaller (just error messages)
+  if (status >= 400) {
+    return faker.number.int({ min: 150, max: 2000 });
+  }
+
+  // 204 No Content has minimal response
+  if (status === 204) {
+    return faker.number.int({ min: 0, max: 100 });
+  }
+
+  // Successful responses can vary widely
+  return faker.number.int({ min: 500, max: 100000 });
+}
+
+function generateFakeEvent(): Omit<Event, 'api_key'> & { timestamp: string } {
   const method = faker.helpers.arrayElement(HTTP_METHODS);
   const path = faker.helpers.arrayElement(API_PATHS).replace(':id', faker.string.uuid());
   const host = faker.internet.domainName();
   const status = generateStatusCode();
   const latency_ms = generateLatency(status);
+
+  // Generate random timestamp between now and 30 days ago
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const randomTimestamp = faker.date.recent({ days: 14, refDate: now });
 
   return {
     method,
@@ -80,16 +114,17 @@ function generateFakeEvent(): Omit<Event, 'api_key'> {
     host,
     status,
     latency_ms,
-    req_size: faker.number.int({ min: 100, max: 10000 }),
-    res_size: faker.number.int({ min: 200, max: 50000 }),
+    req_size: generateRequestSize(method),
+    res_size: generateResponseSize(status, method),
     ip: faker.internet.ip(),
     user_agent: faker.helpers.arrayElement(USER_AGENTS),
+    timestamp: randomTimestamp.toISOString(),
     body:
       status >= 400
         ? JSON.stringify({
             error: faker.lorem.sentence(),
             code: `ERR_${status}`,
-            timestamp: new Date().toISOString(),
+            timestamp: randomTimestamp.toISOString(),
           })
         : null,
   };
@@ -147,8 +182,11 @@ async function seedData(options: SeedOptions) {
     // Generate events for this batch
     for (let j = 0; j < currentBatchSize; j++) {
       const fakeEvent = generateFakeEvent();
-      const eventWithKey: Event = { ...fakeEvent, api_key: apiKey };
-      const enrichedEvent = enrichEvent(eventWithKey, projectId, orgId, logFullUrl);
+      const eventWithKey: Event & { timestamp: string } = { ...fakeEvent, api_key: apiKey };
+      const enrichedEvent = {
+        ...enrichEvent(eventWithKey, projectId, orgId, logFullUrl),
+        timestamp: fakeEvent.timestamp, // Preserve the generated timestamp
+      };
       batch.push(enrichedEvent);
     }
 
