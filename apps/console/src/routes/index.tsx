@@ -1,9 +1,9 @@
 import { APP_NAME } from '@/constants';
 import { Button } from '@/components/ui/button';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { SiGithub } from 'react-icons/si';
-import { authClient } from '@/lib/auth-client';
-import { useState } from 'react';
+import { authClient, useSession } from '@/lib/auth-client';
+import { useState, useEffect } from 'react';
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -11,6 +11,14 @@ export const Route = createFileRoute('/')({
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
+  const { data: session, isPending } = useSession();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isPending && session) {
+      navigate({ to: '/organizations' });
+    }
+  }, [session, isPending, navigate]);
 
   const handleSignIn = async () => {
     setIsLoading(true);
@@ -25,6 +33,11 @@ function App() {
       setIsLoading(false);
     }
   };
+
+  // Show nothing while checking session
+  if (isPending) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
