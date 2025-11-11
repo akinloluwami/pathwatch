@@ -34,12 +34,13 @@ SQL >
         AND status = {{Int32(status)}}
     {% end %}
     {% if defined(start_date) %}
-        AND timestamp >= {{DateTime(start_date)}}
+        AND timestamp >= parseDateTimeBestEffort({{String(start_date)}})
     {% end %}
     {% if defined(end_date) %}
-        AND timestamp <= {{DateTime(end_date)}}
+        AND timestamp <= parseDateTimeBestEffort({{String(end_date)}})
     {% end %}
     ORDER BY timestamp DESC
     LIMIT {{Int32(limit, 100)}}
+    OFFSET {{Int32(offset, 0)}}
 
 TYPE endpoint

@@ -1,0 +1,12 @@
+DESCRIPTION >
+    Query endpoint for sample_logs
+
+NODE sample_logs_data
+SQL >
+    %
+    SELECT
+      *
+    FROM ingestions
+    WHERE org_id = {{String(org_id)}} AND project_id = {{String(project_id)}}
+    ORDER BY timestamp DESC
+    LIMIT {{Int32(limit, 100)}}
