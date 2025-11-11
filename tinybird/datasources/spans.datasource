@@ -1,0 +1,29 @@
+SCHEMA >
+trace_id String `json:$.trace_id`,
+span_id String `json:$.span_id`,
+parent_span_id Nullable(String) `json:$.parent_span_id`,
+timestamp DateTime64(3) `json:$.timestamp`,
+org_id String `json:$.org_id`,
+project_id String `json:$.project_id`,
+service_name String `json:$.service_name`,
+span_name String `json:$.span_name`,
+span_kind String `json:$.span_kind`,
+start_time_unix_nano Int64 `json:$.start_time_unix_nano`,
+end_time_unix_nano Int64 `json:$.end_time_unix_nano`,
+duration_ms Int32 `json:$.duration_ms`,
+status_code String `json:$.status_code`,
+status_message Nullable(String) `json:$.status_message`,
+attributes String `json:$.attributes`,
+events String `json:$.events`,
+links String `json:$.links`,
+resource_attributes String `json:$.resource_attributes`,
+http_method Nullable(String) `json:$.http_method`,
+http_url Nullable(String) `json:$.http_url`,
+http_status_code Nullable(Int32) `json:$.http_status_code`,
+db_system Nullable(String) `json:$.db_system`,
+db_statement Nullable(String) `json:$.db_statement`,
+error Bool `json:$.error`
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYYYYMM(timestamp)
+ENGINE_SORTING_KEY trace_id, span_id, timestamp

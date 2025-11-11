@@ -1,0 +1,21 @@
+SCHEMA >
+trace_id String `json:$.trace_id`,
+timestamp DateTime64(3) `json:$.timestamp`,
+org_id String `json:$.org_id`,
+project_id String `json:$.project_id`,
+service_name String `json:$.service_name`,
+trace_name String `json:$.trace_name`,
+root_service_name String `json:$.root_service_name`,
+duration_ms Int32 `json:$.duration_ms`,
+span_count Int32 `json:$.span_count`,
+error_span_count Int32 `json:$.error_span_count`,
+status String `json:$.status`,
+http_method Nullable(String) `json:$.http_method`,
+http_url Nullable(String) `json:$.http_url`,
+http_status_code Nullable(Int32) `json:$.http_status_code`,
+endpoint Nullable(String) `json:$.endpoint`,
+root_span_id String `json:$.root_span_id`
+
+ENGINE MergeTree
+ENGINE_PARTITION_KEY toYYYYMM(timestamp)
+ENGINE_SORTING_KEY trace_id, timestamp, org_id, project_id
