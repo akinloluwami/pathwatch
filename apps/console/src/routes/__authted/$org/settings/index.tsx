@@ -5,5 +5,7 @@ export const Route = createFileRoute('/__authted/$org/settings/')({
 });
 
 function RouteComponent() {
-  return <Navigate to="/$org/settings/general" params={{ org: 'logbase' }} />;
+  const { org } = Route.useParams();
+
+  return <Navigate to="/$org/settings/general" params={{ org }} />;
 }
