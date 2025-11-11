@@ -10,6 +10,7 @@
     "clean": "rm -rf dist node_modules"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
     "axios": "^1.12.2",
     "elysia": "latest",
     "pg": "^8.16.3"
