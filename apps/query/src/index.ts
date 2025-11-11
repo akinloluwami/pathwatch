@@ -1,4 +1,5 @@
 import { Elysia } from 'elysia';
+import { cors } from '@elysiajs/cors';
 import { config, validateConfig } from './config';
 import { initDatabase } from './database';
 import { authenticateApiKey } from './auth-middleware';
@@ -18,6 +19,12 @@ validateConfig();
 await initDatabase();
 
 const app = new Elysia()
+  .use(
+    cors({
+      origin: true,
+      credentials: true,
+    })
+  )
   .use(authenticateApiKey)
 
   .get('/', handleRoot, { authenticate: true })
