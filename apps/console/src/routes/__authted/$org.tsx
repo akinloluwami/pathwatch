@@ -6,16 +6,16 @@ export const Route = createFileRoute('/__authted/$org')({
 });
 
 function RouteComponent() {
-  const routes = [
-    { name: 'Telemetry', icon: Logs, path: '/$org/telmentary' },
-    { name: 'Settings', icon: Bolt, path: '/$org/settings' },
-  ];
+  // const routes = [
+  //   { name: 'Telemetry', icon: Logs, path: '/$org/telmentary' },
+  //   { name: 'Settings', icon: Bolt, path: '/$org/settings' },
+  // ];
 
   const { pathname } = useLocation();
 
   return (
     <div className="flex space-x-5 h-full overflow-hidden p-5">
-      <div className="space-y-2 flex-shrink-0">
+      {/* <div className="space-y-2 flex-shrink-0">
         {routes.map((route) => {
           const isActive = pathname.includes(route.path.split('$org/')[1]);
           return (
@@ -45,7 +45,7 @@ function RouteComponent() {
             </div>
           );
         })}
-      </div>
+      </div> */}
       <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
         <Outlet />
       </div>
