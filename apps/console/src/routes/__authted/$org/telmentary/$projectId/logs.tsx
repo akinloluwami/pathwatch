@@ -1,10 +1,12 @@
 import { Button } from '@/components/ui/button';
 import Brackets from '@/components/ui/brackets';
 import { TelemetryLayout } from '@/components/layouts/telemetry-layout';
-import { faker } from '@faker-js/faker';
 import { createFileRoute } from '@tanstack/react-router';
 import { RefreshCcw, Search, ChevronDown } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
+import { query } from '@/lib/query-client';
+import { useProjectsStore } from '@/stores/projects-store';
+import { appClient } from '@/lib/app-client';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
@@ -65,13 +67,192 @@ export const Route = createFileRoute('/__authted/$org/telmentary/$projectId/logs
   component: RouteComponent,
 });
 
+function getLogLevel(status: number): LogLevel {
+  if (status >= 500) return 'error';
+  if (status >= 400) return 'warn';
+  return 'info';
+}
+
 function RouteComponent() {
   const { org, projectId } = Route.useParams();
-  const [logs, setLogs] = useState<LogEntry[]>(() => generateLogs());
+  const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeLevels, setActiveLevels] = useState<LogLevel[]>([...LEVEL_ORDER]);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('24h');
   const [isIntervalOpen, setIsIntervalOpen] = useState(false);
+  const { getProjectBySlug } = useProjectsStore();
+  const [statsData, setStatsData] = useState({
+    totalRequests: 0,
+    errorRate: 0,
+    errorCount: 0,
+    warnCount: 0,
+    avgLatency: 0,
+    p95Latency: 0,
+    p99Latency: 0,
+    avgRequestSize: 0,
+    avgResponseSize: 0,
+    totalTransferBytes: 0,
+  });
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const getDateRangeFromInterval = (interval: TimeInterval) => {
+    const intervalMs = INTERVAL_MS[interval];
+    if (intervalMs === null) {
+      return { start_date: undefined, end_date: undefined };
+    }
+    const end_date = new Date().toISOString();
+    const start_date = new Date(Date.now() - intervalMs).toISOString();
+    return { start_date, end_date };
+  };
+
+  const fetchLogs = useCallback(
+    async (append: boolean = false) => {
+      if (append) {
+        setIsLoadingMore(true);
+      } else {
+        setIsLoading(true);
+        setHasMore(true);
+      }
+
+      try {
+        const project = await appClient.projects.get(projectId);
+        if (project.error || !project.data) {
+          console.error('Failed to fetch project:', project.error);
+          setIsLoading(false);
+          setIsLoadingMore(false);
+          return;
+        }
+
+        query.setApiKey(project.data.api_key);
+
+        const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
+
+        const offset = append ? logs.length : 0;
+
+        const result = await query.requests.list({
+          limit: 200,
+          offset,
+          start_date,
+          end_date,
+        });
+
+        if (result.error || !result.data) {
+          console.error('Failed to fetch logs:', result.error);
+          if (!append) {
+            setLogs([]);
+          }
+          setHasMore(false);
+        } else {
+          const transformedLogs = result.data.map((item: any) => ({
+            id: item.id || item.request_id,
+            timestamp: new Date(item.timestamp),
+            level: getLogLevel(item.status_code || item.status),
+            status: item.status_code || item.status,
+            method: item.method,
+            path: item.path,
+            host: item.host || new URL(item.url || 'http://unknown').hostname,
+            url: item.url,
+            latencyMs: item.latency_ms || item.latency || 0,
+            requestSize: item.request_size || item.req_size || 0,
+            responseSize: item.response_size || item.res_size || 0,
+            ip: item.ip_address || item.ip || 'unknown',
+            userAgent: item.user_agent || item.userAgent || 'unknown',
+            body: item.request_body || item.body,
+          }));
+
+          if (append) {
+            setLogs((prev) => [...prev, ...transformedLogs]);
+          } else {
+            setLogs(transformedLogs);
+          }
+
+          // If we got less than 200 results, we've reached the end
+          setHasMore(transformedLogs.length === 200);
+        }
+      } catch (error) {
+        console.error('Error fetching logs:', error);
+        if (!append) {
+          setLogs([]);
+        }
+        setHasMore(false);
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [projectId, timeInterval, logs.length]
+  );
+
+  useEffect(() => {
+    fetchLogs();
+  }, [projectId, org, timeInterval]);
+
+  const fetchStats = useCallback(async () => {
+    setIsStatsLoading(true);
+    try {
+      const project = await appClient.projects.get(projectId);
+      if (project.error || !project.data) {
+        console.error('Failed to fetch project:', project.error);
+        setIsStatsLoading(false);
+        return;
+      }
+
+      query.setApiKey(project.data.api_key);
+
+      const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
+
+      const [totalRequestsResult, errorRateResult, avgLatencyResult] = await Promise.all([
+        query.analytics.totalRequests({ start_date, end_date }),
+        query.analytics.errorRate({ start_date, end_date }),
+        query.analytics.avgLatency({ start_date, end_date }),
+      ]);
+
+      const newStatsData = {
+        totalRequests: 0,
+        errorRate: 0,
+        errorCount: 0,
+        warnCount: 0,
+        avgLatency: 0,
+        p95Latency: 0,
+        p99Latency: 0,
+        avgRequestSize: 0,
+        avgResponseSize: 0,
+        totalTransferBytes: 0,
+      };
+
+      if (totalRequestsResult.data && totalRequestsResult.data.length > 0) {
+        newStatsData.totalRequests = totalRequestsResult.data[0].total_requests || 0;
+      }
+
+      if (errorRateResult.data && errorRateResult.data.length > 0) {
+        const errorData = errorRateResult.data[0];
+        newStatsData.errorRate = errorData.error_rate_percent || 0;
+        newStatsData.errorCount = errorData.error_count || 0;
+        newStatsData.warnCount = 0;
+      }
+
+      if (avgLatencyResult.data && avgLatencyResult.data.length > 0) {
+        const latencyData = avgLatencyResult.data[0];
+        newStatsData.avgLatency = latencyData.avg_latency_ms || 0;
+        newStatsData.p95Latency = latencyData.p95_latency_ms || 0;
+        newStatsData.p99Latency = latencyData.p99_latency_ms || 0;
+      }
+
+      setStatsData(newStatsData);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, [projectId, timeInterval]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [projectId, org, timeInterval]);
 
   const timeFilteredLogs = useMemo(() => {
     const intervalMs = INTERVAL_MS[timeInterval];
@@ -82,7 +263,65 @@ function RouteComponent() {
     return logs.filter((log) => log.timestamp.getTime() >= cutoffTime);
   }, [logs, timeInterval]);
 
-  const stats = useMemo(() => computeStats(timeFilteredLogs), [timeFilteredLogs]);
+  const localStats = useMemo(() => {
+    const errorCount = timeFilteredLogs.filter((log) => log.level === 'error').length;
+    const warnCount = timeFilteredLogs.filter((log) => log.level === 'warn').length;
+    const infoCount = timeFilteredLogs.filter((log) => log.level === 'info').length;
+    const debugCount = timeFilteredLogs.filter((log) => log.level === 'debug').length;
+
+    const totalRequestSize = timeFilteredLogs.reduce((acc, log) => acc + log.requestSize, 0);
+    const totalResponseSize = timeFilteredLogs.reduce((acc, log) => acc + log.responseSize, 0);
+    const avgRequestSize = timeFilteredLogs.length ? totalRequestSize / timeFilteredLogs.length : 0;
+    const avgResponseSize = timeFilteredLogs.length
+      ? totalResponseSize / timeFilteredLogs.length
+      : 0;
+    const totalTransferBytes = totalRequestSize + totalResponseSize;
+
+    return {
+      errorCount,
+      warnCount,
+      infoCount,
+      debugCount,
+      avgRequestSize,
+      avgResponseSize,
+      totalTransferBytes,
+    };
+  }, [timeFilteredLogs]);
+
+  const stats = useMemo(() => {
+    // If no logs are loaded for this time period, show all zeros
+    if (logs.length === 0 && !isLoading) {
+      return {
+        total: 0,
+        errorRate: 0,
+        errorCount: 0,
+        warnCount: 0,
+        infoCount: 0,
+        debugCount: 0,
+        avgLatency: 0,
+        p95Latency: 0,
+        p99Latency: 0,
+        avgRequestSize: 0,
+        avgResponseSize: 0,
+        totalTransferBytes: 0,
+      };
+    }
+
+    return {
+      total: statsData.totalRequests,
+      errorRate: statsData.errorRate,
+      errorCount: localStats.errorCount,
+      warnCount: localStats.warnCount,
+      infoCount: localStats.infoCount,
+      debugCount: localStats.debugCount,
+      avgLatency: statsData.avgLatency,
+      p95Latency: statsData.p95Latency,
+      p99Latency: statsData.p99Latency,
+      avgRequestSize: localStats.avgRequestSize,
+      avgResponseSize: localStats.avgResponseSize,
+      totalTransferBytes: localStats.totalTransferBytes,
+    };
+  }, [statsData, localStats, logs.length, isLoading]);
   const filteredLogs = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     return timeFilteredLogs.filter((log) => {
@@ -132,8 +371,19 @@ function RouteComponent() {
   };
 
   const handleRefresh = () => {
-    setLogs(generateLogs());
+    fetchLogs();
   };
+
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || isLoadingMore || !hasMore) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    // Load more when scrolled to within 200px of bottom
+    if (scrollHeight - scrollTop - clientHeight < 200) {
+      fetchLogs(true);
+    }
+  }, [isLoadingMore, hasMore]);
 
   return (
     <TelemetryLayout
@@ -244,7 +494,7 @@ function RouteComponent() {
                 Refresh logs
               </Button>
               <span className="text-[11px] uppercase tracking-[0.3em] text-gray-500">
-                Showing {filteredLogs.length} / {stats.total}
+                Showing {logs.length.toLocaleString()} of {stats.total.toLocaleString()}
               </span>
             </div>
           </div>
@@ -252,8 +502,16 @@ function RouteComponent() {
 
         <div className="flex-1 min-h-0 border border-gray-800 bg-black/30 relative flex flex-col">
           <Brackets />
-          {filteredLogs.length ? (
-            <div className="flex-1 min-h-0 overflow-auto">
+          {isLoading ? (
+            <div className="flex h-full items-center justify-center text-xs uppercase tracking-[0.3em] text-gray-500">
+              Loading logs...
+            </div>
+          ) : filteredLogs.length ? (
+            <div
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 min-h-0 overflow-auto"
+            >
               <table className="w-full min-w-[68rem] border-collapse text-left text-sm">
                 <thead className="sticky top-0 bg-black/80 text-[11px] uppercase tracking-[0.3em] text-gray-500">
                   <tr>
@@ -310,6 +568,16 @@ function RouteComponent() {
                       </td>
                     </tr>
                   ))}
+                  {isLoadingMore && (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-4 text-center text-xs uppercase tracking-[0.3em] text-gray-500"
+                      >
+                        Loading more logs...
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -322,94 +590,6 @@ function RouteComponent() {
       </div>
     </TelemetryLayout>
   );
-}
-
-function generateLogs(): LogEntry[] {
-  const now = Date.now();
-  const basePaths = [
-    '/api/v1/logs',
-    '/api/v1/projects',
-    '/api/v1/projects/:projectId/logs',
-    '/api/v1/errors',
-    '/api/v1/metrics/:metric',
-    '/api/v1/ingest',
-    '/api/v1/uptime',
-    '/api/v1/routes/:routeId',
-  ];
-
-  const hosts = [
-    'api.pathwatch.dev',
-    'collector.pathwatch.dev',
-    'edge.pathwatch.dev',
-    'staging-api.pathwatch.dev',
-  ];
-
-  const methods: Array<LogEntry['method']> = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
-
-  return Array.from({ length: 120 }, () => {
-    const timestamp = faker.date.recent({ days: 2, refDate: now });
-    const statusPool = [
-      200, 200, 201, 202, 204, 207, 301, 304, 400, 401, 403, 404, 409, 422, 429, 500, 502, 504,
-    ];
-    const status = faker.helpers.arrayElement(statusPool);
-    const method = faker.helpers.arrayElement(methods);
-    const pathTemplate = faker.helpers.arrayElement(basePaths);
-    const path = pathTemplate
-      .replace(':projectId', faker.string.alphanumeric({ length: 8 }).toLowerCase())
-      .replace(':metric', faker.helpers.arrayElement(['latency', 'errors', 'volume']))
-      .replace(':routeId', faker.string.alphanumeric({ length: 6 }).toLowerCase());
-    const host = faker.helpers.arrayElement(hosts);
-    const querySuffix =
-      method === 'GET' && Math.random() < 0.4
-        ? `?cursor=${faker.string.alphanumeric({ length: 10 }).toLowerCase()}`
-        : '';
-    const url = `https://${host}${path}${querySuffix}`;
-    const latencyMs = faker.number.int({ min: 12, max: 2400 });
-    const requestSize = faker.number.int({ min: 120, max: 128_000 });
-    const responseSize = faker.number.int({ min: 200, max: 256_000 });
-    const ip = faker.internet.ipv4();
-    const userAgent = faker.internet.userAgent();
-    const body = ['POST', 'PUT', 'PATCH'].includes(method)
-      ? JSON.stringify(
-          {
-            event: faker.helpers.arrayElement([
-              'ingest',
-              'heartbeat',
-              'error_report',
-              'metric_push',
-            ]),
-            tenant: faker.string.alphanumeric({ length: 6 }).toLowerCase(),
-            success: status < 400,
-          },
-          null,
-          0
-        )
-      : undefined;
-
-    const level: LogLevel =
-      status >= 500
-        ? 'error'
-        : status >= 400
-          ? 'warn'
-          : faker.helpers.arrayElement(['info', 'debug']);
-
-    return {
-      id: faker.string.uuid(),
-      timestamp,
-      level,
-      status,
-      method,
-      path,
-      host,
-      url,
-      latencyMs,
-      requestSize,
-      responseSize,
-      ip,
-      userAgent,
-      body,
-    };
-  }).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 function computeStats(logs: LogEntry[]) {
