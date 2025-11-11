@@ -9,6 +9,7 @@ import {
   Settings2,
   TriangleAlert,
   BarChart3,
+  Activity,
 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useProjectsStore } from '@/stores/projects-store';
@@ -72,6 +73,11 @@ function RouteComponent() {
       name: 'Logs',
       path: '/$org/telmentary/$projectId/logs',
       icon: <BetweenHorizonalStart size={16} />,
+    },
+    {
+      name: 'Traces',
+      path: '/$org/telmentary/$projectId/traces',
+      icon: <Activity size={16} />,
     },
     {
       name: 'Analytics',
