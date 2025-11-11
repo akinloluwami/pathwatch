@@ -14,6 +14,7 @@ import { Route as _authedRouteImport } from './routes/__authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiProjectsRouteImport } from './routes/api.projects'
 import { Route as ApiDemoNamesRouteImport } from './routes/api.demo-names'
+import { Route as _authtedOrganizationsRouteImport } from './routes/__authted/organizations'
 import { Route as _authtedOrgRouteImport } from './routes/__authted/$org'
 import { Route as _authtedOrgIndexRouteImport } from './routes/__authted/$org/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
@@ -62,6 +63,11 @@ const ApiProjectsRoute = ApiProjectsRouteImport.update({
 const ApiDemoNamesRoute = ApiDemoNamesRouteImport.update({
   id: '/api/demo-names',
   path: '/api/demo-names',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const _authtedOrganizationsRoute = _authtedOrganizationsRouteImport.update({
+  id: '/__authted/organizations',
+  path: '/organizations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const _authtedOrgRoute = _authtedOrgRouteImport.update({
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
   '/$org': typeof _authtedOrgRouteWithChildren
+  '/organizations': typeof _authtedOrganizationsRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
@@ -243,6 +250,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/onboarding': typeof OnboardingRoute
+  '/organizations': typeof _authtedOrganizationsRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/__authed': typeof _authedRoute
   '/onboarding': typeof OnboardingRoute
   '/__authted/$org': typeof _authtedOrgRouteWithChildren
+  '/__authted/organizations': typeof _authtedOrganizationsRoute
   '/api/demo-names': typeof ApiDemoNamesRoute
   '/api/projects': typeof ApiProjectsRoute
   '/__authted/$org/settings': typeof _authtedOrgSettingsRouteWithChildren
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/$org'
+    | '/organizations'
     | '/api/demo-names'
     | '/api/projects'
     | '/$org/settings'
@@ -335,6 +345,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/onboarding'
+    | '/organizations'
     | '/api/demo-names'
     | '/api/projects'
     | '/api/auth/$'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/__authed'
     | '/onboarding'
     | '/__authted/$org'
+    | '/__authted/organizations'
     | '/api/demo-names'
     | '/api/projects'
     | '/__authted/$org/settings'
@@ -396,6 +408,7 @@ export interface RootRouteChildren {
   _authedRoute: typeof _authedRoute
   OnboardingRoute: typeof OnboardingRoute
   _authtedOrgRoute: typeof _authtedOrgRouteWithChildren
+  _authtedOrganizationsRoute: typeof _authtedOrganizationsRoute
   ApiDemoNamesRoute: typeof ApiDemoNamesRoute
   ApiProjectsRoute: typeof ApiProjectsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -436,6 +449,13 @@ declare module '@tanstack/react-router' {
       path: '/api/demo-names'
       fullPath: '/api/demo-names'
       preLoaderRoute: typeof ApiDemoNamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/__authted/organizations': {
+      id: '/__authted/organizations'
+      path: '/organizations'
+      fullPath: '/organizations'
+      preLoaderRoute: typeof _authtedOrganizationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/__authted/$org': {
@@ -734,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   _authedRoute: _authedRoute,
   OnboardingRoute: OnboardingRoute,
   _authtedOrgRoute: _authtedOrgRouteWithChildren,
+  _authtedOrganizationsRoute: _authtedOrganizationsRoute,
   ApiDemoNamesRoute: ApiDemoNamesRoute,
   ApiProjectsRoute: ApiProjectsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
