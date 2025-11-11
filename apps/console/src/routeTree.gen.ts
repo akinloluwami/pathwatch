@@ -29,6 +29,7 @@ import { Route as _authtedOrgSettingsSecurityRouteImport } from './routes/__auth
 import { Route as _authtedOrgSettingsGeneralRouteImport } from './routes/__authted/$org/settings/general'
 import { Route as _authtedOrgSettingsBillingRouteImport } from './routes/__authted/$org/settings/billing'
 import { Route as _authtedOrgTelmentaryProjectIdIndexRouteImport } from './routes/__authted/$org/telmentary/$projectId/index'
+import { Route as _authtedOrgTelmentaryProjectIdTracesRouteImport } from './routes/__authted/$org/telmentary/$projectId/traces'
 import { Route as _authtedOrgTelmentaryProjectIdSettingsRouteImport } from './routes/__authted/$org/telmentary/$projectId/settings'
 import { Route as _authtedOrgTelmentaryProjectIdLogsRouteImport } from './routes/__authted/$org/telmentary/$projectId/logs'
 import { Route as _authtedOrgTelmentaryProjectIdAnalyticsRouteImport } from './routes/__authted/$org/telmentary/$projectId/analytics'
@@ -148,6 +149,12 @@ const _authtedOrgTelmentaryProjectIdIndexRoute =
     path: '/',
     getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
   } as any)
+const _authtedOrgTelmentaryProjectIdTracesRoute =
+  _authtedOrgTelmentaryProjectIdTracesRouteImport.update({
+    id: '/traces',
+    path: '/traces',
+    getParentRoute: () => _authtedOrgTelmentaryProjectIdRoute,
+  } as any)
 const _authtedOrgTelmentaryProjectIdSettingsRoute =
   _authtedOrgTelmentaryProjectIdSettingsRouteImport.update({
     id: '/settings',
@@ -238,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/$org/telmentary/$projectId/settings': typeof _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren
+  '/$org/telmentary/$projectId/traces': typeof _authtedOrgTelmentaryProjectIdTracesRoute
   '/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
   '/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
   '/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/$org/telmentary/$projectId/alerts': typeof _authtedOrgTelmentaryProjectIdAlertsRoute
   '/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
+  '/$org/telmentary/$projectId/traces': typeof _authtedOrgTelmentaryProjectIdTracesRoute
   '/$org/telmentary/$projectId': typeof _authtedOrgTelmentaryProjectIdIndexRoute
   '/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
   '/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/__authted/$org/telmentary/$projectId/analytics': typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   '/__authted/$org/telmentary/$projectId/logs': typeof _authtedOrgTelmentaryProjectIdLogsRoute
   '/__authted/$org/telmentary/$projectId/settings': typeof _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren
+  '/__authted/$org/telmentary/$projectId/traces': typeof _authtedOrgTelmentaryProjectIdTracesRoute
   '/__authted/$org/telmentary/$projectId/': typeof _authtedOrgTelmentaryProjectIdIndexRoute
   '/__authted/$org/telmentary/$projectId/settings/access-control': typeof _authtedOrgTelmentaryProjectIdSettingsAccessControlRoute
   '/__authted/$org/telmentary/$projectId/settings/alerts': typeof _authtedOrgTelmentaryProjectIdSettingsAlertsRoute
@@ -333,6 +343,7 @@ export interface FileRouteTypes {
     | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
     | '/$org/telmentary/$projectId/settings'
+    | '/$org/telmentary/$projectId/traces'
     | '/$org/telmentary/$projectId/'
     | '/$org/telmentary/$projectId/settings/access-control'
     | '/$org/telmentary/$projectId/settings/alerts'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/$org/telmentary/$projectId/alerts'
     | '/$org/telmentary/$projectId/analytics'
     | '/$org/telmentary/$projectId/logs'
+    | '/$org/telmentary/$projectId/traces'
     | '/$org/telmentary/$projectId'
     | '/$org/telmentary/$projectId/settings/access-control'
     | '/$org/telmentary/$projectId/settings/alerts'
@@ -393,6 +405,7 @@ export interface FileRouteTypes {
     | '/__authted/$org/telmentary/$projectId/analytics'
     | '/__authted/$org/telmentary/$projectId/logs'
     | '/__authted/$org/telmentary/$projectId/settings'
+    | '/__authted/$org/telmentary/$projectId/traces'
     | '/__authted/$org/telmentary/$projectId/'
     | '/__authted/$org/telmentary/$projectId/settings/access-control'
     | '/__authted/$org/telmentary/$projectId/settings/alerts'
@@ -556,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdIndexRouteImport
       parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
     }
+    '/__authted/$org/telmentary/$projectId/traces': {
+      id: '/__authted/$org/telmentary/$projectId/traces'
+      path: '/traces'
+      fullPath: '/$org/telmentary/$projectId/traces'
+      preLoaderRoute: typeof _authtedOrgTelmentaryProjectIdTracesRouteImport
+      parentRoute: typeof _authtedOrgTelmentaryProjectIdRoute
+    }
     '/__authted/$org/telmentary/$projectId/settings': {
       id: '/__authted/$org/telmentary/$projectId/settings'
       path: '/settings'
@@ -695,6 +715,7 @@ interface _authtedOrgTelmentaryProjectIdRouteChildren {
   _authtedOrgTelmentaryProjectIdAnalyticsRoute: typeof _authtedOrgTelmentaryProjectIdAnalyticsRoute
   _authtedOrgTelmentaryProjectIdLogsRoute: typeof _authtedOrgTelmentaryProjectIdLogsRoute
   _authtedOrgTelmentaryProjectIdSettingsRoute: typeof _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren
+  _authtedOrgTelmentaryProjectIdTracesRoute: typeof _authtedOrgTelmentaryProjectIdTracesRoute
   _authtedOrgTelmentaryProjectIdIndexRoute: typeof _authtedOrgTelmentaryProjectIdIndexRoute
 }
 
@@ -708,6 +729,8 @@ const _authtedOrgTelmentaryProjectIdRouteChildren: _authtedOrgTelmentaryProjectI
       _authtedOrgTelmentaryProjectIdLogsRoute,
     _authtedOrgTelmentaryProjectIdSettingsRoute:
       _authtedOrgTelmentaryProjectIdSettingsRouteWithChildren,
+    _authtedOrgTelmentaryProjectIdTracesRoute:
+      _authtedOrgTelmentaryProjectIdTracesRoute,
     _authtedOrgTelmentaryProjectIdIndexRoute:
       _authtedOrgTelmentaryProjectIdIndexRoute,
   }
