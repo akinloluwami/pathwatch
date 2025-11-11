@@ -5,10 +5,9 @@ export const Route = createFileRoute('/__authted/$org/telmentary/')({
 });
 
 function RouteComponent() {
+  const { org } = Route.useParams();
+
   return (
-    <Navigate
-      to="/$org/telmentary/$projectId/logs"
-      params={{ org: 'logbase', projectId: 'plaything' }}
-    />
+    <Navigate to="/$org/telmentary/$projectId/logs" params={{ org, projectId: 'plaything' }} />
   );
 }
