@@ -1,0 +1,34 @@
+DESCRIPTION >
+    Query endpoint for top endpoints by trace count
+
+NODE top_endpoints_data
+SQL >
+    %
+    SELECT
+        endpoint,
+        count() as trace_count,
+        avg(duration_ms) as avg_duration,
+        quantile(0.95)(duration_ms) as p95_duration,
+        countIf(status = 'error') as error_count
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        AND endpoint IS NOT NULL
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(service_name) %}
+        AND service_name = {{String(service_name)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+    GROUP BY endpoint
+    ORDER BY trace_count DESC
+    LIMIT {{Int32(limit, 20)}}
+
+TYPE endpoint
+

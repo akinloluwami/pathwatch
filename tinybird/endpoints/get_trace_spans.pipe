@@ -1,0 +1,36 @@
+DESCRIPTION >
+    Query endpoint for getting all spans of a trace
+
+NODE trace_spans_data
+SQL >
+    %
+    SELECT
+        trace_id,
+        span_id,
+        parent_span_id,
+        span_name,
+        span_kind,
+        start_time_ms,
+        end_time_ms,
+        duration_ms,
+        status_code,
+        status_message,
+        service_name,
+        attributes,
+        events,
+        links,
+        resource_attributes,
+        http_method,
+        http_url,
+        http_status_code,
+        db_system,
+        db_statement,
+        error
+    FROM spans
+    WHERE 
+        trace_id = {{String(trace_id, '')}}
+        AND project_id = {{String(project_id, '')}}
+    ORDER BY start_time_ms ASC
+
+TYPE endpoint
+

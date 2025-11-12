@@ -1,0 +1,29 @@
+DESCRIPTION >
+    Query endpoint for getting trace details
+
+NODE trace_details_data
+SQL >
+    %
+    SELECT
+        t.trace_id,
+        t.timestamp,
+        t.service_name,
+        t.trace_name,
+        t.root_service_name,
+        t.duration_ms,
+        t.span_count,
+        t.error_span_count,
+        t.status,
+        t.http_method,
+        t.http_url,
+        t.http_status_code,
+        t.endpoint,
+        t.root_span_id
+    FROM traces t
+    WHERE 
+        t.trace_id = {{String(trace_id, '')}}
+        AND t.project_id = {{String(project_id, '')}}
+    LIMIT 1
+
+TYPE endpoint
+

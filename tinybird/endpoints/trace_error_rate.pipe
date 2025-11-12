@@ -1,0 +1,30 @@
+DESCRIPTION >
+    Query endpoint for trace error rates
+
+NODE error_rate_data
+SQL >
+    %
+    SELECT
+        count() as total_traces,
+        countIf(status = 'error') as error_traces,
+        countIf(status = 'success') as success_traces,
+        countIf(status = 'pending') as pending_traces,
+        (countIf(status = 'error') / count()) * 100 as error_rate_percent
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(service_name) %}
+        AND service_name = {{String(service_name)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+
+TYPE endpoint
+

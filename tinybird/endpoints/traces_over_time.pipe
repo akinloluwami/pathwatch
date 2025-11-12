@@ -1,0 +1,32 @@
+DESCRIPTION >
+    Query endpoint for traces over time aggregated by interval
+
+NODE traces_time_series_data
+SQL >
+    %
+    SELECT
+        toStartOfInterval(timestamp, INTERVAL {{String(interval, '1 hour')}}) as time_bucket,
+        count() as trace_count,
+        avg(duration_ms) as avg_duration,
+        countIf(status = 'error') as error_count
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(service_name) %}
+        AND service_name = {{String(service_name)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+    GROUP BY time_bucket
+    ORDER BY time_bucket DESC
+    LIMIT {{Int32(limit, 168)}}
+
+TYPE endpoint
+

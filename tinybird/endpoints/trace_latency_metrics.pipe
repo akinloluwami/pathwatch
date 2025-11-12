@@ -1,0 +1,32 @@
+DESCRIPTION >
+    Query endpoint for trace latency metrics (P50, P95, P99)
+
+NODE latency_metrics_data
+SQL >
+    %
+    SELECT
+        quantile(0.50)(duration_ms) as p50,
+        quantile(0.95)(duration_ms) as p95,
+        quantile(0.99)(duration_ms) as p99,
+        avg(duration_ms) as avg_duration,
+        min(duration_ms) as min_duration,
+        max(duration_ms) as max_duration,
+        count() as total_traces
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(service_name) %}
+        AND service_name = {{String(service_name)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+
+TYPE endpoint
+

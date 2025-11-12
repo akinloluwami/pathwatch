@@ -1,0 +1,30 @@
+DESCRIPTION >
+    Query endpoint for top services by trace count
+
+NODE top_services_data
+SQL >
+    %
+    SELECT
+        service_name,
+        count() as trace_count,
+        avg(duration_ms) as avg_duration,
+        countIf(status = 'error') as error_count,
+        (countIf(status = 'error') / count()) * 100 as error_rate_percent
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+    GROUP BY service_name
+    ORDER BY trace_count DESC
+    LIMIT {{Int32(limit, 20)}}
+
+TYPE endpoint
+

@@ -1,0 +1,43 @@
+DESCRIPTION >
+    Query endpoint for listing traces with filters
+
+NODE list_traces_data
+SQL >
+    %
+    SELECT
+        trace_id,
+        timestamp,
+        service_name,
+        trace_name,
+        duration_ms,
+        span_count,
+        error_span_count,
+        status,
+        http_method,
+        http_url,
+        http_status_code,
+        endpoint
+    FROM traces
+    WHERE 
+        project_id = {{String(project_id, '')}}
+        {% if defined(org_id) %}
+        AND org_id = {{String(org_id)}}
+        {% end %}
+        {% if defined(service_name) %}
+        AND service_name = {{String(service_name)}}
+        {% end %}
+        {% if defined(status) %}
+        AND status = {{String(status)}}
+        {% end %}
+        {% if defined(start_time) %}
+        AND timestamp >= toDateTime({{Int64(start_time)}})
+        {% end %}
+        {% if defined(end_time) %}
+        AND timestamp <= toDateTime({{Int64(end_time)}})
+        {% end %}
+    ORDER BY timestamp DESC
+    LIMIT {{Int32(limit, 100)}}
+    OFFSET {{Int32(offset, 0)}}
+
+TYPE endpoint
+
