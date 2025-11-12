@@ -1,0 +1,492 @@
+#!/usr/bin/env bun
+import { faker } from '@faker-js/faker';
+import { Pool } from 'pg';
+import { enrichSpan, enrichTrace, aggregateSpansToTrace } from './tracing-transform';
+import { ingestSpansToTinybird, ingestTracesToTinybird } from './tracing-ingest';
+import type { Span } from './schemas';
+
+interface SeedOptions {
+  apiKey: string;
+  count: number; // Number of traces to generate
+  batchSize?: number;
+}
+
+const SERVICES = [
+  'api-gateway',
+  'auth-service',
+  'user-service',
+  'product-service',
+  'order-service',
+  'payment-service',
+  'notification-service',
+  'analytics-service',
+  'search-service',
+  'recommendation-service',
+];
+
+const OPERATIONS = {
+  'api-gateway': [
+    'GET /api/users',
+    'POST /api/orders',
+    'GET /api/products',
+    'POST /api/auth/login',
+  ],
+  'auth-service': ['validate-token', 'generate-token', 'refresh-token', 'verify-user'],
+  'user-service': ['get-user', 'create-user', 'update-user', 'delete-user', 'list-users'],
+  'product-service': [
+    'get-product',
+    'list-products',
+    'search-products',
+    'update-inventory',
+    'check-availability',
+  ],
+  'order-service': ['create-order', 'get-order', 'list-orders', 'cancel-order', 'update-status'],
+  'payment-service': ['process-payment', 'refund-payment', 'verify-payment', 'get-payment-status'],
+  'notification-service': ['send-email', 'send-sms', 'send-push', 'send-webhook'],
+  'analytics-service': ['track-event', 'record-metrics', 'generate-report'],
+  'search-service': ['search-products', 'search-users', 'autocomplete', 'filter-results'],
+  'recommendation-service': ['get-recommendations', 'calculate-similarity', 'update-user-profile'],
+};
+
+const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
+const DB_SYSTEMS = ['postgresql', 'redis', 'mongodb', 'elasticsearch'];
+const DB_OPERATIONS = ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'FIND', 'AGGREGATE'];
+
+function generateSpanKind(): 'SERVER' | 'CLIENT' | 'INTERNAL' | 'PRODUCER' | 'CONSUMER' {
+  const kinds: Array<'SERVER' | 'CLIENT' | 'INTERNAL' | 'PRODUCER' | 'CONSUMER'> = [
+    'SERVER',
+    'CLIENT',
+    'INTERNAL',
+    'PRODUCER',
+    'CONSUMER',
+  ];
+  const weights = [0.4, 0.3, 0.2, 0.05, 0.05]; // Weighted random
+  const rand = Math.random();
+  let sum = 0;
+  for (let i = 0; i < weights.length; i++) {
+    sum += weights[i];
+    if (rand <= sum) return kinds[i];
+  }
+  return 'INTERNAL';
+}
+
+function generateStatusCode(errorRate: number = 0.05): 'OK' | 'ERROR' | 'UNSET' {
+  return Math.random() < errorRate ? 'ERROR' : 'OK';
+}
+
+function generateDuration(isError: boolean, minMs: number = 5, maxMs: number = 1000): number {
+  // Errors tend to be slower
+  if (isError) {
+    return faker.number.int({ min: maxMs / 2, max: maxMs * 2 });
+  }
+  return faker.number.int({ min: minMs, max: maxMs });
+}
+
+function generateHttpAttributes(method?: string) {
+  const httpMethod = method || faker.helpers.arrayElement(HTTP_METHODS);
+  const paths = [
+    '/api/users',
+    '/api/products',
+    '/api/orders',
+    '/api/auth/login',
+    '/api/checkout',
+    '/api/search',
+    '/health',
+    '/metrics',
+  ];
+  const statusCodes = [200, 201, 204, 400, 401, 403, 404, 500, 502, 503];
+
+  return {
+    http_method: httpMethod,
+    http_url: faker.helpers.arrayElement(paths),
+    http_status_code: faker.helpers.arrayElement(statusCodes),
+  };
+}
+
+function generateDbAttributes() {
+  const system = faker.helpers.arrayElement(DB_SYSTEMS);
+  const operation = faker.helpers.arrayElement(DB_OPERATIONS);
+  const tables = ['users', 'products', 'orders', 'payments', 'sessions'];
+
+  return {
+    db_system: system,
+    db_statement: `${operation} * FROM ${faker.helpers.arrayElement(tables)} WHERE id = ?`,
+  };
+}
+
+function generateTrace(traceId: string, rootService: string): Omit<Span, 'api_key'>[] {
+  const spans: Omit<Span, 'api_key'>[] = [];
+  const spanCount = faker.number.int({ min: 3, max: 15 }); // Number of spans in trace
+  const now = Date.now();
+
+  // Generate random timestamp between now and 7 days ago (in milliseconds)
+  const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const traceStartTime = faker.number.int({ min: sevenDaysAgo, max: now });
+
+  let currentTime = traceStartTime;
+  let parentSpanId: string | null = null;
+  const spanStack: { id: string; endTime: number }[] = [];
+
+  // Generate root span (usually from api-gateway)
+  const rootSpanId = faker.string.uuid();
+  const rootDuration = generateDuration(false, 100, 2000);
+  const rootEndTime = currentTime + rootDuration;
+
+  const rootHttpAttrs = generateHttpAttributes();
+  const rootStatusCode = generateStatusCode(0.05);
+
+  spans.push({
+    trace_id: traceId,
+    span_id: rootSpanId,
+    parent_span_id: null,
+    service_name: rootService,
+    span_name: rootHttpAttrs.http_method + ' ' + rootHttpAttrs.http_url,
+    span_kind: 'SERVER',
+    start_time_unix_nano: traceStartTime * 1000000, // Convert ms to nanoseconds
+    end_time_unix_nano: rootEndTime * 1000000, // Convert ms to nanoseconds
+    duration_ms: rootDuration,
+    status_code: rootStatusCode,
+    status_message: rootStatusCode === 'ERROR' ? faker.lorem.sentence() : null,
+    attributes: {
+      'service.version': faker.system.semver(),
+      'deployment.environment': faker.helpers.arrayElement([
+        'production',
+        'staging',
+        'development',
+      ]),
+    },
+    resource_attributes: {
+      'host.name': faker.internet.domainName(),
+      'process.pid': faker.number.int({ min: 1000, max: 99999 }),
+    },
+    events: [],
+    links: [],
+    http_method: rootHttpAttrs.http_method,
+    http_url: rootHttpAttrs.http_url,
+    http_status_code: rootHttpAttrs.http_status_code,
+    db_system: null,
+    db_statement: null,
+  });
+
+  spanStack.push({ id: rootSpanId, endTime: rootEndTime });
+  currentTime += faker.number.int({ min: 1, max: 10 });
+
+  // Generate child spans
+  for (let i = 1; i < spanCount; i++) {
+    // Randomly decide if this span is a child of the most recent span or goes back up the stack
+    if (spanStack.length > 1 && Math.random() < 0.3) {
+      spanStack.pop(); // Go back up the stack
+    }
+
+    const parent = spanStack[spanStack.length - 1];
+    parentSpanId = parent.id;
+
+    // Make sure child span ends before parent
+    const maxEndTime = parent.endTime;
+    const spanId = faker.string.uuid();
+    const service = faker.helpers.arrayElement(SERVICES);
+    const operation = faker.helpers.arrayElement(OPERATIONS[service as keyof typeof OPERATIONS]);
+    const spanKind = generateSpanKind();
+    const statusCode = generateStatusCode(0.08);
+
+    const spanDuration = generateDuration(statusCode === 'ERROR', 5, 500);
+
+    // Ensure child span starts within parent's time range
+    const parentStartTime = traceStartTime; // Approximate parent start
+    if (currentTime >= maxEndTime) {
+      // Reset currentTime to be within parent bounds
+      currentTime = maxEndTime - spanDuration - faker.number.int({ min: 5, max: 20 });
+    }
+
+    const spanStartTime = currentTime;
+    const spanEndTime = spanStartTime + spanDuration;
+
+    // Ensure span doesn't exceed parent's end time
+    const actualEndTime = Math.min(spanEndTime, maxEndTime - 1);
+    const actualDuration = Math.max(1, actualEndTime - spanStartTime); // Ensure positive duration
+
+    const isHttpSpan = spanKind === 'SERVER' || spanKind === 'CLIENT';
+    const isDbSpan = spanKind === 'INTERNAL' && Math.random() < 0.4;
+
+    const httpAttrs = isHttpSpan ? generateHttpAttributes() : null;
+    const dbAttrs = isDbSpan ? generateDbAttributes() : null;
+
+    spans.push({
+      trace_id: traceId,
+      span_id: spanId,
+      parent_span_id: parentSpanId,
+      service_name: service,
+      span_name: operation,
+      span_kind: spanKind,
+      start_time_unix_nano: spanStartTime * 1000000, // Convert ms to nanoseconds
+      end_time_unix_nano: actualEndTime * 1000000, // Convert ms to nanoseconds
+      duration_ms: actualDuration,
+      status_code: statusCode,
+      status_message: statusCode === 'ERROR' ? faker.lorem.sentence() : null,
+      attributes: {
+        'service.version': faker.system.semver(),
+        'span.type': spanKind.toLowerCase(),
+      },
+      resource_attributes: {
+        'host.name': faker.internet.domainName(),
+        'process.pid': faker.number.int({ min: 1000, max: 99999 }),
+      },
+      events:
+        statusCode === 'ERROR'
+          ? [
+              {
+                timestamp: spanStartTime,
+                name: 'exception',
+                attributes: { 'exception.message': faker.lorem.sentence() },
+              },
+            ]
+          : [],
+      links: [],
+      http_method: httpAttrs?.http_method || null,
+      http_url: httpAttrs?.http_url || null,
+      http_status_code: httpAttrs?.http_status_code || null,
+      db_system: dbAttrs?.db_system || null,
+      db_statement: dbAttrs?.db_statement || null,
+    });
+
+    spanStack.push({ id: spanId, endTime: actualEndTime });
+    currentTime = actualEndTime + faker.number.int({ min: 1, max: 5 });
+  }
+
+  return spans;
+}
+
+async function getProjectDetails(apiKey: string): Promise<{ projectId: string; orgId: string }> {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL environment variable is required');
+  }
+
+  const pool = new Pool({ connectionString: databaseUrl });
+
+  try {
+    const result = await pool.query('SELECT id, org_id FROM projects WHERE api_key = $1', [apiKey]);
+
+    if (result.rows.length === 0) {
+      throw new Error(`No project found with API key: ${apiKey}`);
+    }
+
+    const project = result.rows[0];
+    return {
+      projectId: project.id,
+      orgId: project.org_id,
+    };
+  } finally {
+    await pool.end();
+  }
+}
+
+async function seedTracingData(options: SeedOptions) {
+  const { apiKey, count, batchSize = 50 } = options;
+
+  console.log('🔍 Fetching project details...');
+  const { projectId, orgId } = await getProjectDetails(apiKey);
+  console.log(`✅ Found project: ${projectId} (org: ${orgId})`);
+
+  console.log(`\n🌱 Starting to seed ${count} traces to Tinybird...\n`);
+
+  const startTime = Date.now();
+  let successCount = 0;
+  let errorCount = 0;
+  let totalSpans = 0;
+
+  // Process in batches
+  for (let i = 0; i < count; i += batchSize) {
+    const currentBatchSize = Math.min(batchSize, count - i);
+    const allSpans: any[] = [];
+    const allTraces: any[] = [];
+
+    // Generate traces for this batch
+    for (let j = 0; j < currentBatchSize; j++) {
+      const traceId = `trace-${faker.string.uuid()}`;
+      const rootService = faker.helpers.arrayElement(SERVICES);
+      const spans = generateTrace(traceId, rootService);
+
+      // Transform spans for Tinybird format (stringify JSON fields for Tinybird String type)
+      const tinybirdSpans = spans.map((span) => {
+        const timestamp = new Date(span.start_time_unix_nano / 1000000);
+        return {
+          trace_id: span.trace_id,
+          span_id: span.span_id,
+          parent_span_id: span.parent_span_id || null,
+          timestamp: Math.floor(timestamp.getTime() / 1000), // Unix timestamp in seconds
+          org_id: orgId,
+          project_id: projectId,
+          service_name: span.service_name,
+          span_name: span.span_name,
+          span_kind: span.span_kind,
+          start_time_ms: Math.floor(span.start_time_unix_nano / 1000000),
+          end_time_ms: Math.floor(span.end_time_unix_nano / 1000000),
+          duration_ms: span.duration_ms,
+          status_code: span.status_code,
+          status_message: span.status_message || null,
+          attributes: JSON.stringify(span.attributes || {}), // Stringify for Tinybird String type
+          events: JSON.stringify(span.events || []), // Stringify for Tinybird String type
+          links: JSON.stringify(span.links || []), // Stringify for Tinybird String type
+          resource_attributes: JSON.stringify(span.resource_attributes || {}), // Stringify for Tinybird String type
+          http_method: span.http_method || null,
+          http_url: span.http_url || null,
+          http_status_code: span.http_status_code || null,
+          db_system: span.db_system || null,
+          db_statement: span.db_statement || null,
+          error: span.status_code === 'ERROR',
+        };
+      });
+
+      allSpans.push(...tinybirdSpans);
+
+      // Create aggregated trace manually (no enrichTrace to avoid issues)
+      const rootSpan = spans.find((s) => !s.parent_span_id) || spans[0];
+      const errorSpans = spans.filter((s) => s.status_code === 'ERROR');
+      const startTimes = spans.map((s) => s.start_time_unix_nano);
+      const endTimes = spans.map((s) => s.end_time_unix_nano);
+      const minStart = Math.min(...startTimes);
+      const maxEnd = Math.max(...endTimes);
+      const duration_ms = Math.round((maxEnd - minStart) / 1000000);
+
+      let status: 'success' | 'error' | 'pending' = 'success';
+      if (errorSpans.length > 0) {
+        status = 'error';
+      } else if (spans.some((s) => s.status_code === 'UNSET')) {
+        status = 'pending';
+      }
+
+      const aggregatedTrace = {
+        trace_id: rootSpan.trace_id,
+        timestamp: Math.floor(minStart / 1000000000), // Convert nanoseconds to seconds
+        org_id: orgId,
+        project_id: projectId,
+        service_name: rootSpan.service_name,
+        trace_name: rootSpan.span_name,
+        root_service_name: rootSpan.service_name,
+        duration_ms,
+        span_count: spans.length,
+        error_span_count: errorSpans.length,
+        status,
+        http_method: rootSpan.http_method || null,
+        http_url: rootSpan.http_url || null,
+        http_status_code: rootSpan.http_status_code || null,
+        endpoint: rootSpan.http_url || null,
+        root_span_id: rootSpan.span_id,
+      };
+      if (aggregatedTrace) {
+        allTraces.push(aggregatedTrace);
+      }
+
+      totalSpans += spans.length;
+    }
+
+    try {
+      // Ingest spans and traces
+      await ingestSpansToTinybird(allSpans);
+      await ingestTracesToTinybird(allTraces);
+
+      successCount += currentBatchSize;
+
+      // Progress indicator
+      const progress = Math.round((successCount / count) * 100);
+      const bar = '█'.repeat(Math.floor(progress / 2)) + '░'.repeat(50 - Math.floor(progress / 2));
+      process.stdout.write(
+        `\r[${bar}] ${progress}% (${successCount}/${count} traces, ${totalSpans} spans)`
+      );
+    } catch (error) {
+      errorCount += currentBatchSize;
+      console.error(`\n❌ Error ingesting batch ${i / batchSize + 1}:`, error);
+    }
+
+    // Small delay to avoid overwhelming Tinybird
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+  const tracesPerSecond = (successCount / parseFloat(duration)).toFixed(2);
+
+  console.log('\n\n✅ Seeding complete!');
+  console.log(`📊 Stats:`);
+  console.log(`   - Total traces: ${count}`);
+  console.log(`   - Total spans: ${totalSpans}`);
+  console.log(`   - Successful traces: ${successCount}`);
+  console.log(`   - Failed traces: ${errorCount}`);
+  console.log(`   - Duration: ${duration}s`);
+  console.log(`   - Rate: ${tracesPerSecond} traces/sec`);
+  console.log(`   - Average spans per trace: ${(totalSpans / successCount).toFixed(2)}`);
+}
+
+// CLI Interface
+async function main() {
+  const args = process.argv.slice(2);
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log(`
+🌱 PathWatch Tracing Seed Script
+
+Usage:
+  bun run seed-tracing --api-key=<key> --count=<number> [options]
+
+Required:
+  --api-key=<key>         API key of the project to seed data into
+  --count=<number>        Number of traces to generate
+
+Optional:
+  --batch-size=<number>   Batch size for ingestion [default: 50]
+  --help, -h              Show this help message
+
+Examples:
+  bun run seed-tracing --api-key=pw_abc123 --count=1000
+  bun run seed-tracing --api-key=pw_abc123 --count=5000 --batch-size=25
+
+Environment Variables Required:
+  DATABASE_URL            PostgreSQL connection string
+  TINYBIRD_URL           Tinybird ingestion URL
+  TINYBIRD_TOKEN         Tinybird auth token
+
+Features:
+  - Generates realistic distributed traces with 3-15 spans each
+  - Multiple microservices (api-gateway, auth, user, product, order, etc.)
+  - HTTP and database operations
+  - Realistic error rates (~5-8%)
+  - Parent-child span relationships
+  - Attributes, events, and resource metadata
+    `);
+    process.exit(0);
+  }
+
+  // Parse arguments
+  const apiKeyArg = args.find((arg) => arg.startsWith('--api-key='));
+  const countArg = args.find((arg) => arg.startsWith('--count='));
+  const batchSizeArg = args.find((arg) => arg.startsWith('--batch-size='));
+
+  if (!apiKeyArg || !countArg) {
+    console.error('❌ Error: --api-key and --count are required');
+    console.log('Run with --help for usage information');
+    process.exit(1);
+  }
+
+  const apiKey = apiKeyArg.split('=')[1];
+  const count = parseInt(countArg.split('=')[1], 10);
+  const batchSize = batchSizeArg ? parseInt(batchSizeArg.split('=')[1], 10) : 50;
+
+  if (isNaN(count) || count <= 0) {
+    console.error('❌ Error: --count must be a positive number');
+    process.exit(1);
+  }
+
+  if (isNaN(batchSize) || batchSize <= 0) {
+    console.error('❌ Error: --batch-size must be a positive number');
+    process.exit(1);
+  }
+
+  try {
+    await seedTracingData({ apiKey, count, batchSize });
+  } catch (error) {
+    console.error('\n❌ Seeding failed:', error);
+    process.exit(1);
+  }
+}
+
+main();
