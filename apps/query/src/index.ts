@@ -3,7 +3,15 @@ import { cors } from '@elysiajs/cors';
 import { config, validateConfig } from './config';
 import { initDatabase } from './database';
 import { authenticateApiKey } from './auth-middleware';
-import { limitQuerySchema, intervalQuerySchema, requestsQuerySchema } from './route-schemas';
+import {
+  limitQuerySchema,
+  intervalQuerySchema,
+  requestsQuerySchema,
+  tracesQuerySchema,
+  traceIdParamSchema,
+  traceMetricsQuerySchema,
+  tracesTimeSeriesQuerySchema,
+} from './route-schemas';
 import {
   handleRoot,
   handleTotalRequests,
@@ -13,6 +21,14 @@ import {
   handleRequestsOverTime,
   handleRequestCountsByPeriod,
   handleRequests,
+  handleListTraces,
+  handleGetTraceDetails,
+  handleGetTraceSpans,
+  handleTraceLatencyMetrics,
+  handleTraceErrorRate,
+  handleTracesOverTime,
+  handleTopServices,
+  handleTopEndpoints,
 } from './routes';
 
 validateConfig();
@@ -62,6 +78,47 @@ const app = new Elysia()
   .get('/requests', handleRequests, {
     authenticate: true,
     query: requestsQuerySchema,
+  })
+
+  // Tracing endpoints
+  .get('/tracing/traces', handleListTraces, {
+    authenticate: true,
+    query: tracesQuerySchema,
+  })
+
+  .get('/tracing/traces/:trace_id', handleGetTraceDetails, {
+    authenticate: true,
+    params: traceIdParamSchema,
+  })
+
+  .get('/tracing/traces/:trace_id/spans', handleGetTraceSpans, {
+    authenticate: true,
+    params: traceIdParamSchema,
+  })
+
+  .get('/tracing/metrics/latency', handleTraceLatencyMetrics, {
+    authenticate: true,
+    query: traceMetricsQuerySchema,
+  })
+
+  .get('/tracing/metrics/error-rate', handleTraceErrorRate, {
+    authenticate: true,
+    query: traceMetricsQuerySchema,
+  })
+
+  .get('/tracing/metrics/over-time', handleTracesOverTime, {
+    authenticate: true,
+    query: tracesTimeSeriesQuerySchema,
+  })
+
+  .get('/tracing/top-services', handleTopServices, {
+    authenticate: true,
+    query: traceMetricsQuerySchema,
+  })
+
+  .get('/tracing/top-endpoints', handleTopEndpoints, {
+    authenticate: true,
+    query: traceMetricsQuerySchema,
   })
 
   .listen(config.port);
