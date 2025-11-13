@@ -10,7 +10,9 @@ export async function initDatabase() {
 }
 
 export async function verifyApiKey(token: string) {
-  const res = await db.query('SELECT org_id, id FROM projects WHERE api_key = $1', [token]);
+  const res = await db.query('SELECT org_id, id as project_id FROM projects WHERE api_key = $1', [
+    token,
+  ]);
 
   if (res.rows.length === 0) return null;
   return res.rows[0];
