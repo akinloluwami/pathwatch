@@ -4,6 +4,7 @@ import { TelemetryLayout } from '@/components/layouts/telemetry-layout';
 import { TraceDetailsPanel } from '@/components/traces/trace-details-panel';
 import { TraceComparison } from '@/components/traces/trace-comparison';
 import { TraceMetricsDashboard } from '@/components/traces/trace-metrics-dashboard';
+import { query } from '@/lib/query-client';
 import { createFileRoute } from '@tanstack/react-router';
 import {
   RefreshCcw,
@@ -31,6 +32,15 @@ const INTERVAL_LABELS: Record<TimeInterval, string> = {
   all: 'All time',
 };
 
+const INTERVAL_MS: Record<TimeInterval, number | null> = {
+  '15m': 15 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  '6h': 6 * 60 * 60 * 1000,
+  '24h': 24 * 60 * 60 * 1000,
+  '7d': 7 * 24 * 60 * 60 * 1000,
+  all: null,
+};
+
 type SpanType = 'http' | 'db' | 'cache' | 'external' | 'internal';
 
 type Span = {
@@ -51,6 +61,7 @@ type Trace = {
   duration: number;
   status: TraceStatus;
   spans: Span[];
+  spanCount: number;
   serviceName: string;
   endpoint: string;
   method: string;
@@ -78,6 +89,7 @@ function RouteComponent() {
   const { org, projectId } = Route.useParams();
   const [traces, setTraces] = useState<Trace[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMetricsLoading, setIsMetricsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTrace, setSelectedTrace] = useState<Trace | null>(null);
   const [timeInterval, setTimeInterval] = useState<TimeInterval>('24h');
@@ -86,156 +98,224 @@ function RouteComponent() {
   const [selectedForComparison, setSelectedForComparison] = useState<Set<string>>(new Set());
   const [showComparison, setShowComparison] = useState(false);
   const [serviceFilter, setServiceFilter] = useState<string>('all');
+  const [stats, setStats] = useState({
+    totalTraces: 0,
+    avgDuration: 0,
+    p50Duration: 0,
+    p95Duration: 0,
+    p99Duration: 0,
+    successRate: 0,
+    errorRate: 0,
+    slowestEndpoint: '',
+    slowestDuration: 0,
+  });
 
+  const getDateRangeFromInterval = (interval: TimeInterval) => {
+    const intervalMs = INTERVAL_MS[interval];
+    if (intervalMs === null) {
+      return { start_date: undefined, end_date: undefined };
+    }
+    const end_date = new Date().toISOString();
+    const start_date = new Date(Date.now() - intervalMs).toISOString();
+    return { start_date, end_date };
+  };
+
+  // Fetch traces from API
   useEffect(() => {
-    const mockTraces: Trace[] = [
-      {
-        id: 'trace-1',
-        name: 'GET /api/users',
-        timestamp: new Date(Date.now() - 300000),
-        duration: 245,
-        status: 'success',
-        serviceName: 'api-service',
-        endpoint: '/api/users',
-        method: 'GET',
-        spans: [
-          {
-            id: 'span-1',
-            name: 'HTTP GET /api/users',
-            type: 'http',
-            startTime: 0,
-            duration: 245,
-            status: 'success',
-            children: [
-              {
-                id: 'span-2',
-                name: 'DB Query: SELECT users',
-                type: 'db',
-                startTime: 5,
-                duration: 120,
-                status: 'success',
-                attributes: { query: 'SELECT * FROM users WHERE active = true' },
-              },
-              {
-                id: 'span-3',
-                name: 'Cache Check',
-                type: 'cache',
-                startTime: 130,
-                duration: 15,
-                status: 'success',
-              },
-              {
-                id: 'span-4',
-                name: 'External API: Enrich Data',
-                type: 'external',
-                startTime: 150,
-                duration: 85,
-                status: 'success',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'trace-2',
-        name: 'POST /api/orders',
-        timestamp: new Date(Date.now() - 600000),
-        duration: 1230,
-        status: 'error',
-        serviceName: 'order-service',
-        endpoint: '/api/orders',
-        method: 'POST',
-        spans: [
-          {
-            id: 'span-5',
-            name: 'HTTP POST /api/orders',
-            type: 'http',
-            startTime: 0,
-            duration: 1230,
-            status: 'error',
-            children: [
-              {
-                id: 'span-6',
-                name: 'Validate Order',
-                type: 'internal',
-                startTime: 5,
-                duration: 45,
-                status: 'success',
-              },
-              {
-                id: 'span-7',
-                name: 'DB Transaction',
-                type: 'db',
-                startTime: 55,
-                duration: 890,
-                status: 'error',
-                attributes: { error: 'Deadlock detected' },
-              },
-              {
-                id: 'span-8',
-                name: 'Rollback',
-                type: 'internal',
-                startTime: 950,
-                duration: 280,
-                status: 'success',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'trace-3',
-        name: 'GET /api/products/search',
-        timestamp: new Date(Date.now() - 900000),
-        duration: 456,
-        status: 'success',
-        serviceName: 'search-service',
-        endpoint: '/api/products/search',
-        method: 'GET',
-        spans: [
-          {
-            id: 'span-9',
-            name: 'HTTP GET /api/products/search',
-            type: 'http',
-            startTime: 0,
-            duration: 456,
-            status: 'success',
-            children: [
-              {
-                id: 'span-10',
-                name: 'Cache Lookup',
-                type: 'cache',
-                startTime: 5,
-                duration: 12,
-                status: 'success',
-              },
-              {
-                id: 'span-11',
-                name: 'Search Index Query',
-                type: 'db',
-                startTime: 20,
-                duration: 380,
-                status: 'success',
-              },
-              {
-                id: 'span-12',
-                name: 'Format Results',
-                type: 'internal',
-                startTime: 405,
-                duration: 45,
-                status: 'success',
-              },
-            ],
-          },
-        ],
-      },
-    ];
+    async function fetchTraces() {
+      setIsLoading(true);
+      try {
+        const params: any = {
+          limit: 100,
+        };
 
-    setTimeout(() => {
-      setTraces(mockTraces);
-      setIsLoading(false);
-    }, 500);
-  }, [timeInterval]);
+        // Add time interval filter
+        const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
+        if (start_date && end_date) {
+          // Convert ISO dates to Unix timestamps (seconds)
+          params.start_time = Math.floor(new Date(start_date).getTime() / 1000);
+          params.end_time = Math.floor(new Date(end_date).getTime() / 1000);
+        }
+
+        // Add status filter
+        if (statusFilter !== 'all') {
+          params.status = statusFilter;
+        }
+
+        // Add service filter
+        if (serviceFilter !== 'all') {
+          params.service_name = serviceFilter;
+        }
+
+        const response = await query.tracing.listTraces(params);
+
+        if (response.error) {
+          console.error('Error fetching traces:', response.error);
+          setTraces([]);
+          return;
+        }
+
+        // Transform API response to match UI format
+        const transformedTraces: Trace[] = (response.data || []).map((apiTrace: any) => ({
+          id: apiTrace.trace_id,
+          name: apiTrace.trace_name || `${apiTrace.http_method} ${apiTrace.http_url}`,
+          timestamp: new Date(apiTrace.timestamp * 1000), // Convert Unix timestamp to Date
+          duration: apiTrace.duration_ms,
+          status: apiTrace.status as TraceStatus,
+          spans: [], // Will be loaded on demand when trace is selected
+          spanCount: apiTrace.span_count || 0,
+          serviceName: apiTrace.root_service_name || apiTrace.service_name,
+          endpoint: apiTrace.endpoint || apiTrace.http_url || '',
+          method: apiTrace.http_method || '',
+        }));
+
+        setTraces(transformedTraces);
+      } catch (error) {
+        console.error('Failed to fetch traces:', error);
+        setTraces([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchTraces();
+  }, [timeInterval, statusFilter, serviceFilter]);
+
+  // Fetch metrics independently from trace list
+  useEffect(() => {
+    async function fetchMetrics() {
+      setIsMetricsLoading(true);
+      try {
+        const params: any = {};
+
+        // Add time interval filter using the same helper as fetchTraces
+        const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
+        if (start_date && end_date) {
+          // Convert ISO strings to Unix timestamps for metrics endpoints
+          params.start_time = Math.floor(new Date(start_date).getTime() / 1000);
+          params.end_time = Math.floor(new Date(end_date).getTime() / 1000);
+        }
+
+        // Add service filter
+        if (serviceFilter !== 'all') {
+          params.service_name = serviceFilter;
+        }
+
+        // Fetch all metrics in parallel
+        const [latencyResponse, errorRateResponse, topEndpointsResponse] = await Promise.all([
+          query.tracing.metrics.latency(params),
+          query.tracing.metrics.errorRate(params),
+          query.tracing.topEndpoints(params),
+        ]);
+
+        if (latencyResponse.error || errorRateResponse.error || topEndpointsResponse.error) {
+          console.error('Error fetching metrics');
+          return;
+        }
+
+        const latencyData = latencyResponse.data?.[0] || {};
+        const errorData = errorRateResponse.data?.[0] || {};
+        const topEndpoints = topEndpointsResponse.data || [];
+
+        setStats({
+          totalTraces: latencyData.total_traces || 0,
+          avgDuration: Math.round(latencyData.avg_duration_ms || 0),
+          p50Duration: Math.round(latencyData.p50_duration_ms || 0),
+          p95Duration: Math.round(latencyData.p95_duration_ms || 0),
+          p99Duration: Math.round(latencyData.p99_duration_ms || 0),
+          successRate: errorData.success_rate || 0,
+          errorRate: errorData.error_rate || 0,
+          slowestEndpoint: topEndpoints[0]?.endpoint || '',
+          slowestDuration: Math.round(topEndpoints[0]?.avg_duration_ms || 0),
+        });
+      } catch (error) {
+        console.error('Failed to fetch metrics:', error);
+      } finally {
+        setIsMetricsLoading(false);
+      }
+    }
+
+    fetchMetrics();
+  }, [timeInterval, serviceFilter]);
+
+  // Fetch trace details when a trace is selected
+  useEffect(() => {
+    async function fetchTraceDetails() {
+      if (!selectedTrace) return;
+
+      try {
+        const [detailsResponse, spansResponse] = await Promise.all([
+          query.tracing.getTraceDetails(selectedTrace.id),
+          query.tracing.getTraceSpans(selectedTrace.id),
+        ]);
+
+        if (spansResponse.error) {
+          console.error('Error fetching spans:', spansResponse.error);
+          return;
+        }
+
+        // Transform spans from API format to UI format
+        const apiSpans = spansResponse.data || [];
+
+        // Build span hierarchy
+        const spanMap = new Map<string, Span>();
+        const rootSpans: Span[] = [];
+
+        apiSpans.forEach((apiSpan: any) => {
+          const span: Span = {
+            id: apiSpan.span_id,
+            name: apiSpan.span_name,
+            type: determineSpanType(apiSpan),
+            startTime: apiSpan.start_time_ms - apiSpans[0]?.start_time_ms || 0, // Relative to trace start
+            duration: apiSpan.duration_ms,
+            status: apiSpan.error ? 'error' : 'success',
+            attributes: apiSpan.attributes ? JSON.parse(apiSpan.attributes) : undefined,
+            children: [],
+          };
+          spanMap.set(span.id, span);
+        });
+
+        // Build hierarchy
+        apiSpans.forEach((apiSpan: any) => {
+          const span = spanMap.get(apiSpan.span_id);
+          if (!span) return;
+
+          if (apiSpan.parent_span_id && spanMap.has(apiSpan.parent_span_id)) {
+            const parent = spanMap.get(apiSpan.parent_span_id);
+            if (parent) {
+              if (!parent.children) parent.children = [];
+              parent.children.push(span);
+            }
+          } else {
+            rootSpans.push(span);
+          }
+        });
+
+        // Update the selected trace with spans
+        setSelectedTrace((prev) =>
+          prev
+            ? {
+                ...prev,
+                spans: rootSpans,
+              }
+            : null
+        );
+      } catch (error) {
+        console.error('Failed to fetch trace details:', error);
+      }
+    }
+
+    fetchTraceDetails();
+  }, [selectedTrace?.id]);
+
+  // Helper function to determine span type from API data
+  function determineSpanType(apiSpan: any): SpanType {
+    if (apiSpan.http_method) return 'http';
+    if (apiSpan.db_system) return 'db';
+    if (apiSpan.span_kind === 'CLIENT') return 'external';
+    if (apiSpan.span_name?.toLowerCase().includes('cache')) return 'cache';
+    return 'internal';
+  }
 
   const filteredTraces = useMemo(() => {
     return traces.filter((trace) => {
@@ -254,39 +334,6 @@ function RouteComponent() {
   const services = useMemo(() => {
     const uniqueServices = new Set(traces.map((t) => t.serviceName));
     return ['all', ...Array.from(uniqueServices)];
-  }, [traces]);
-
-  const stats = useMemo(() => {
-    const total = traces.length;
-    const successful = traces.filter((t) => t.status === 'success').length;
-    const errors = traces.filter((t) => t.status === 'error').length;
-    const durations = traces.map((t) => t.duration).sort((a, b) => a - b);
-    const avgDuration = traces.reduce((sum, t) => sum + t.duration, 0) / (total || 1);
-    const p50Duration = durations[Math.floor(total * 0.5)] || 0;
-    const p95Duration = durations[Math.floor(total * 0.95)] || 0;
-    const p99Duration = durations[Math.floor(total * 0.99)] || 0;
-    const successRate = (successful / (total || 1)) * 100;
-    const errorRate = (errors / (total || 1)) * 100;
-
-    const slowestTrace = traces.reduce(
-      (slowest, trace) => (trace.duration > (slowest?.duration || 0) ? trace : slowest),
-      traces[0]
-    );
-
-    return {
-      totalTraces: total,
-      total,
-      successful,
-      errors,
-      avgDuration,
-      p50Duration,
-      p95Duration,
-      p99Duration,
-      successRate,
-      errorRate,
-      slowestEndpoint: slowestTrace?.endpoint || '',
-      slowestDuration: slowestTrace?.duration || 0,
-    };
   }, [traces]);
 
   const toggleTraceForComparison = (traceId: string) => {
@@ -527,7 +574,7 @@ function TraceRow({
           </div>
           <div className="text-right">
             <div className="text-gray-500 uppercase text-[10px] tracking-wider mb-1">Spans</div>
-            <div className="text-white">{countSpans(trace.spans)}</div>
+            <div className="text-white">{trace.spanCount}</div>
           </div>
         </div>
 
