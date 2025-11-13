@@ -24,29 +24,108 @@ const SERVICES = [
   'recommendation-service',
 ];
 
-const OPERATIONS = {
-  'api-gateway': [
-    'GET /api/users',
-    'POST /api/orders',
-    'GET /api/products',
-    'POST /api/auth/login',
-  ],
-  'auth-service': ['validate-token', 'generate-token', 'refresh-token', 'verify-user'],
-  'user-service': ['get-user', 'create-user', 'update-user', 'delete-user', 'list-users'],
-  'product-service': [
-    'get-product',
-    'list-products',
-    'search-products',
-    'update-inventory',
-    'check-availability',
-  ],
-  'order-service': ['create-order', 'get-order', 'list-orders', 'cancel-order', 'update-status'],
-  'payment-service': ['process-payment', 'refund-payment', 'verify-payment', 'get-payment-status'],
-  'notification-service': ['send-email', 'send-sms', 'send-push', 'send-webhook'],
-  'analytics-service': ['track-event', 'record-metrics', 'generate-report'],
-  'search-service': ['search-products', 'search-users', 'autocomplete', 'filter-results'],
-  'recommendation-service': ['get-recommendations', 'calculate-similarity', 'update-user-profile'],
-};
+// Realistic trace scenarios
+const TRACE_SCENARIOS = [
+  {
+    name: 'User Login',
+    rootOperation: { method: 'POST', path: '/api/auth/login', service: 'api-gateway' },
+    children: [
+      { service: 'auth-service', operation: 'validate-credentials', type: 'INTERNAL' },
+      { service: 'auth-service', operation: 'query-user', type: 'CLIENT', db: 'postgresql' },
+      { service: 'auth-service', operation: 'generate-token', type: 'INTERNAL' },
+      { service: 'auth-service', operation: 'cache-session', type: 'CLIENT', db: 'redis' },
+    ],
+  },
+  {
+    name: 'Get User Profile',
+    rootOperation: { method: 'GET', path: '/api/users/{id}', service: 'api-gateway' },
+    children: [
+      { service: 'auth-service', operation: 'validate-token', type: 'INTERNAL' },
+      { service: 'user-service', operation: 'get-user', type: 'CLIENT', db: 'postgresql' },
+      { service: 'user-service', operation: 'check-cache', type: 'CLIENT', db: 'redis' },
+    ],
+  },
+  {
+    name: 'Create Order',
+    rootOperation: { method: 'POST', path: '/api/orders', service: 'api-gateway' },
+    children: [
+      { service: 'auth-service', operation: 'validate-token', type: 'INTERNAL' },
+      { service: 'product-service', operation: 'check-availability', type: 'CLIENT' },
+      {
+        service: 'product-service',
+        operation: 'query-inventory',
+        type: 'CLIENT',
+        db: 'postgresql',
+      },
+      { service: 'order-service', operation: 'create-order', type: 'CLIENT', db: 'postgresql' },
+      { service: 'payment-service', operation: 'process-payment', type: 'CLIENT' },
+      { service: 'payment-service', operation: 'charge-card', type: 'INTERNAL' },
+      { service: 'notification-service', operation: 'send-email', type: 'CLIENT' },
+      { service: 'analytics-service', operation: 'track-event', type: 'INTERNAL' },
+    ],
+  },
+  {
+    name: 'Search Products',
+    rootOperation: { method: 'GET', path: '/api/products/search', service: 'api-gateway' },
+    children: [
+      {
+        service: 'search-service',
+        operation: 'search-products',
+        type: 'CLIENT',
+        db: 'elasticsearch',
+      },
+      { service: 'search-service', operation: 'filter-results', type: 'INTERNAL' },
+      { service: 'recommendation-service', operation: 'get-recommendations', type: 'CLIENT' },
+      { service: 'analytics-service', operation: 'track-search', type: 'INTERNAL' },
+    ],
+  },
+  {
+    name: 'List Products',
+    rootOperation: { method: 'GET', path: '/api/products', service: 'api-gateway' },
+    children: [
+      { service: 'product-service', operation: 'list-products', type: 'CLIENT', db: 'postgresql' },
+      { service: 'product-service', operation: 'check-cache', type: 'CLIENT', db: 'redis' },
+    ],
+  },
+  {
+    name: 'Update User',
+    rootOperation: { method: 'PUT', path: '/api/users/{id}', service: 'api-gateway' },
+    children: [
+      { service: 'auth-service', operation: 'validate-token', type: 'INTERNAL' },
+      { service: 'user-service', operation: 'update-user', type: 'CLIENT', db: 'postgresql' },
+      { service: 'user-service', operation: 'invalidate-cache', type: 'CLIENT', db: 'redis' },
+      { service: 'analytics-service', operation: 'track-event', type: 'INTERNAL' },
+    ],
+  },
+  {
+    name: 'Health Check',
+    rootOperation: { method: 'GET', path: '/health', service: 'api-gateway' },
+    children: [
+      { service: 'api-gateway', operation: 'check-database', type: 'CLIENT', db: 'postgresql' },
+      { service: 'api-gateway', operation: 'check-cache', type: 'CLIENT', db: 'redis' },
+    ],
+  },
+  {
+    name: 'Get Recommendations',
+    rootOperation: { method: 'GET', path: '/api/recommendations', service: 'api-gateway' },
+    children: [
+      { service: 'auth-service', operation: 'validate-token', type: 'INTERNAL' },
+      {
+        service: 'recommendation-service',
+        operation: 'get-user-profile',
+        type: 'CLIENT',
+        db: 'postgresql',
+      },
+      { service: 'recommendation-service', operation: 'calculate-similarity', type: 'INTERNAL' },
+      {
+        service: 'recommendation-service',
+        operation: 'query-products',
+        type: 'CLIENT',
+        db: 'postgresql',
+      },
+    ],
+  },
+];
 
 const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'];
 const DB_SYSTEMS = ['postgresql', 'redis', 'mongodb', 'elasticsearch'];
@@ -116,37 +195,121 @@ function generateDbAttributes() {
 
 function generateTrace(traceId: string, rootService: string): Omit<Span, 'api_key'>[] {
   const spans: Omit<Span, 'api_key'>[] = [];
-  const spanCount = faker.number.int({ min: 3, max: 15 }); // Number of spans in trace
   const now = Date.now();
+
+  // Pick a random scenario
+  const scenario = faker.helpers.arrayElement(TRACE_SCENARIOS);
 
   // Generate random timestamp between now and 7 days ago (in milliseconds)
   const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
   const traceStartTime = faker.number.int({ min: sevenDaysAgo, max: now });
 
-  let currentTime = traceStartTime;
-  let parentSpanId: string | null = null;
-  const spanStack: { id: string; endTime: number }[] = [];
+  // Determine if this trace will be an error (5-8% error rate)
+  const isTraceError = Math.random() < 0.07;
+  const traceStatusCode = isTraceError
+    ? faker.helpers.arrayElement([400, 401, 403, 404, 500, 502, 503])
+    : faker.helpers.arrayElement([200, 201, 204]);
 
-  // Generate root span (usually from api-gateway)
   const rootSpanId = faker.string.uuid();
-  const rootDuration = generateDuration(false, 100, 2000);
-  const rootEndTime = currentTime + rootDuration;
+  const rootStatusCode = isTraceError ? 'ERROR' : 'OK';
 
-  const rootHttpAttrs = generateHttpAttributes();
-  const rootStatusCode = generateStatusCode(0.05);
+  // Generate child spans first to calculate total duration
+  let currentTime = traceStartTime + faker.number.int({ min: 1, max: 5 });
+  const childSpans: any[] = [];
 
+  scenario.children.forEach((child, index) => {
+    const spanId = faker.string.uuid();
+
+    // Determine if this individual span has an error
+    const isSpanError = isTraceError && Math.random() < 0.4;
+    const spanStatusCode = isSpanError ? 'ERROR' : 'OK';
+
+    // Generate realistic span duration based on operation type
+    let spanDuration: number;
+    if (child.db) {
+      // DB operations: 10-150ms
+      spanDuration = faker.number.int({ min: 10, max: 150 });
+    } else if (child.type === 'CLIENT') {
+      // HTTP calls: 50-300ms
+      spanDuration = faker.number.int({ min: 50, max: 300 });
+    } else {
+      // Internal operations: 5-100ms
+      spanDuration = faker.number.int({ min: 5, max: 100 });
+    }
+
+    // Errors tend to take longer
+    if (isSpanError) {
+      spanDuration = Math.floor(spanDuration * 1.5);
+    }
+
+    const spanEndTime = currentTime + spanDuration;
+
+    // Generate DB attributes if this is a DB span
+    const dbAttrs = child.db
+      ? {
+          db_system: child.db,
+          db_statement: `SELECT * FROM ${faker.helpers.arrayElement(['users', 'products', 'orders', 'payments'])} WHERE id = $1`,
+        }
+      : null;
+
+    childSpans.push({
+      trace_id: traceId,
+      span_id: spanId,
+      parent_span_id: rootSpanId,
+      service_name: child.service,
+      span_name: child.operation,
+      span_kind: child.type as 'SERVER' | 'CLIENT' | 'INTERNAL',
+      start_time_unix_nano: currentTime * 1000000,
+      end_time_unix_nano: spanEndTime * 1000000,
+      duration_ms: spanDuration,
+      status_code: spanStatusCode,
+      status_message: isSpanError ? faker.lorem.sentence() : null,
+      attributes: {
+        'service.version': faker.system.semver(),
+        'span.type': child.type.toLowerCase(),
+      },
+      resource_attributes: {
+        'host.name': faker.internet.domainName(),
+        'process.pid': faker.number.int({ min: 1000, max: 99999 }),
+      },
+      events: isSpanError
+        ? [
+            {
+              timestamp: currentTime + Math.floor(spanDuration / 2),
+              name: 'exception',
+              attributes: { 'exception.message': faker.lorem.sentence() },
+            },
+          ]
+        : [],
+      links: [],
+      http_method: child.type === 'CLIENT' && !child.db ? faker.helpers.arrayElement(['GET', 'POST']) : null,
+      http_url: child.type === 'CLIENT' && !child.db ? `/internal/${child.operation}` : null,
+      http_status_code: child.type === 'CLIENT' && !child.db ? (isSpanError ? 500 : 200) : null,
+      db_system: dbAttrs?.db_system || null,
+      db_statement: dbAttrs?.db_statement || null,
+    });
+
+    // Move time forward for next span (small gap between spans)
+    currentTime = spanEndTime + faker.number.int({ min: 1, max: 5 });
+  });
+
+  // Calculate root duration as total time from start to end of last child span
+  const traceEndTime = currentTime;
+  const rootDuration = traceEndTime - traceStartTime;
+
+  // Create root span with calculated duration
   spans.push({
     trace_id: traceId,
     span_id: rootSpanId,
     parent_span_id: null,
-    service_name: rootService,
-    span_name: rootHttpAttrs.http_method + ' ' + rootHttpAttrs.http_url,
+    service_name: scenario.rootOperation.service,
+    span_name: `${scenario.rootOperation.method} ${scenario.rootOperation.path}`,
     span_kind: 'SERVER',
-    start_time_unix_nano: traceStartTime * 1000000, // Convert ms to nanoseconds
-    end_time_unix_nano: rootEndTime * 1000000, // Convert ms to nanoseconds
+    start_time_unix_nano: traceStartTime * 1000000,
+    end_time_unix_nano: traceEndTime * 1000000,
     duration_ms: rootDuration,
     status_code: rootStatusCode,
-    status_message: rootStatusCode === 'ERROR' ? faker.lorem.sentence() : null,
+    status_message: isTraceError ? faker.lorem.sentence() : null,
     attributes: {
       'service.version': faker.system.semver(),
       'deployment.environment': faker.helpers.arrayElement([
@@ -159,99 +322,25 @@ function generateTrace(traceId: string, rootService: string): Omit<Span, 'api_ke
       'host.name': faker.internet.domainName(),
       'process.pid': faker.number.int({ min: 1000, max: 99999 }),
     },
-    events: [],
+    events: isTraceError
+      ? [
+          {
+            timestamp: traceStartTime + Math.floor(rootDuration / 2),
+            name: 'exception',
+            attributes: { 'exception.message': faker.lorem.sentence() },
+          },
+        ]
+      : [],
     links: [],
-    http_method: rootHttpAttrs.http_method,
-    http_url: rootHttpAttrs.http_url,
-    http_status_code: rootHttpAttrs.http_status_code,
+    http_method: scenario.rootOperation.method,
+    http_url: scenario.rootOperation.path,
+    http_status_code: traceStatusCode,
     db_system: null,
     db_statement: null,
   });
 
-  spanStack.push({ id: rootSpanId, endTime: rootEndTime });
-  currentTime += faker.number.int({ min: 1, max: 10 });
-
-  // Generate child spans
-  for (let i = 1; i < spanCount; i++) {
-    // Randomly decide if this span is a child of the most recent span or goes back up the stack
-    if (spanStack.length > 1 && Math.random() < 0.3) {
-      spanStack.pop(); // Go back up the stack
-    }
-
-    const parent = spanStack[spanStack.length - 1];
-    parentSpanId = parent.id;
-
-    // Make sure child span ends before parent
-    const maxEndTime = parent.endTime;
-    const spanId = faker.string.uuid();
-    const service = faker.helpers.arrayElement(SERVICES);
-    const operation = faker.helpers.arrayElement(OPERATIONS[service as keyof typeof OPERATIONS]);
-    const spanKind = generateSpanKind();
-    const statusCode = generateStatusCode(0.08);
-
-    const spanDuration = generateDuration(statusCode === 'ERROR', 5, 500);
-
-    // Ensure child span starts within parent's time range
-    const parentStartTime = traceStartTime; // Approximate parent start
-    if (currentTime >= maxEndTime) {
-      // Reset currentTime to be within parent bounds
-      currentTime = maxEndTime - spanDuration - faker.number.int({ min: 5, max: 20 });
-    }
-
-    const spanStartTime = currentTime;
-    const spanEndTime = spanStartTime + spanDuration;
-
-    // Ensure span doesn't exceed parent's end time
-    const actualEndTime = Math.min(spanEndTime, maxEndTime - 1);
-    const actualDuration = Math.max(1, actualEndTime - spanStartTime); // Ensure positive duration
-
-    const isHttpSpan = spanKind === 'SERVER' || spanKind === 'CLIENT';
-    const isDbSpan = spanKind === 'INTERNAL' && Math.random() < 0.4;
-
-    const httpAttrs = isHttpSpan ? generateHttpAttributes() : null;
-    const dbAttrs = isDbSpan ? generateDbAttributes() : null;
-
-    spans.push({
-      trace_id: traceId,
-      span_id: spanId,
-      parent_span_id: parentSpanId,
-      service_name: service,
-      span_name: operation,
-      span_kind: spanKind,
-      start_time_unix_nano: spanStartTime * 1000000, // Convert ms to nanoseconds
-      end_time_unix_nano: actualEndTime * 1000000, // Convert ms to nanoseconds
-      duration_ms: actualDuration,
-      status_code: statusCode,
-      status_message: statusCode === 'ERROR' ? faker.lorem.sentence() : null,
-      attributes: {
-        'service.version': faker.system.semver(),
-        'span.type': spanKind.toLowerCase(),
-      },
-      resource_attributes: {
-        'host.name': faker.internet.domainName(),
-        'process.pid': faker.number.int({ min: 1000, max: 99999 }),
-      },
-      events:
-        statusCode === 'ERROR'
-          ? [
-              {
-                timestamp: spanStartTime,
-                name: 'exception',
-                attributes: { 'exception.message': faker.lorem.sentence() },
-              },
-            ]
-          : [],
-      links: [],
-      http_method: httpAttrs?.http_method || null,
-      http_url: httpAttrs?.http_url || null,
-      http_status_code: httpAttrs?.http_status_code || null,
-      db_system: dbAttrs?.db_system || null,
-      db_statement: dbAttrs?.db_statement || null,
-    });
-
-    spanStack.push({ id: spanId, endTime: actualEndTime });
-    currentTime = actualEndTime + faker.number.int({ min: 1, max: 5 });
-  }
+  // Add all child spans
+  spans.push(...childSpans);
 
   return spans;
 }
