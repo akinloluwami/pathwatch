@@ -6,7 +6,6 @@ import { RefreshCcw, Search, ChevronDown } from 'lucide-react';
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { query } from '@/lib/query-client';
 import { useProjectsStore } from '@/stores/projects-store';
-import { appClient } from '@/lib/app-client';
 
 type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
@@ -119,16 +118,6 @@ function RouteComponent() {
       }
 
       try {
-        const project = await appClient.projects.get(projectId);
-        if (project.error || !project.data) {
-          console.error('Failed to fetch project:', project.error);
-          setIsLoading(false);
-          setIsLoadingMore(false);
-          return;
-        }
-
-        query.setApiKey(project.data.api_key);
-
         const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
 
         const offset = append ? logs.length : 0;
@@ -194,15 +183,6 @@ function RouteComponent() {
   const fetchStats = useCallback(async () => {
     setIsStatsLoading(true);
     try {
-      const project = await appClient.projects.get(projectId);
-      if (project.error || !project.data) {
-        console.error('Failed to fetch project:', project.error);
-        setIsStatsLoading(false);
-        return;
-      }
-
-      query.setApiKey(project.data.api_key);
-
       const { start_date, end_date } = getDateRangeFromInterval(timeInterval);
 
       const [totalRequestsResult, errorRateResult, avgLatencyResult] = await Promise.all([
