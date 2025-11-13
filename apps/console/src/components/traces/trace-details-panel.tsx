@@ -39,7 +39,7 @@ type TraceDetailsPanelProps = {
 };
 
 const SPAN_TYPE_COLORS: Record<SpanType, string> = {
-  http: '#f45817',
+  http: '#2d86de',
   db: '#3b82f6',
   cache: '#10b981',
   external: '#8b5cf6',
