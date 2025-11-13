@@ -6,7 +6,7 @@ SQL >
     %
     SELECT
         trace_id,
-        timestamp,
+        toUnixTimestamp(timestamp) as timestamp,
         service_name,
         trace_name,
         duration_ms,
