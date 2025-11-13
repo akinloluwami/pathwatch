@@ -282,7 +282,8 @@ function generateTrace(traceId: string, rootService: string): Omit<Span, 'api_ke
           ]
         : [],
       links: [],
-      http_method: child.type === 'CLIENT' && !child.db ? faker.helpers.arrayElement(['GET', 'POST']) : null,
+      http_method:
+        child.type === 'CLIENT' && !child.db ? faker.helpers.arrayElement(['GET', 'POST']) : null,
       http_url: child.type === 'CLIENT' && !child.db ? `/internal/${child.operation}` : null,
       http_status_code: child.type === 'CLIENT' && !child.db ? (isSpanError ? 500 : 200) : null,
       db_system: dbAttrs?.db_system || null,
