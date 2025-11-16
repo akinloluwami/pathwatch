@@ -73,7 +73,7 @@ export function TraceMetricsDashboard({ metrics }: TraceMetricsDashboardProps) {
       {displayMetrics.map((metric) => (
         <MetricCard key={metric.label} metric={metric} />
       ))}
-      {metrics.slowestEndpoint && (
+      {/* {metrics.slowestEndpoint && (
         <div className="relative border border-gray-800 bg-black/40 px-4 py-3 md:col-span-2 xl:col-span-4">
           <Brackets />
           <div className="flex items-center justify-between">
@@ -91,7 +91,7 @@ export function TraceMetricsDashboard({ metrics }: TraceMetricsDashboardProps) {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
