@@ -3,13 +3,11 @@ import { faker } from '@faker-js/faker';
 import { Pool } from 'pg';
 import { enrichEvent } from './transform';
 import { ingestToTinybird } from './tinybird-ingest';
-import { ingestToCloudflareR2 } from './cloudflare-ingest';
 import type { Event } from './schemas';
 
 interface SeedOptions {
   apiKey: string;
   count: number;
-  target: 'tinybird' | 'cloudflare' | 'both';
   batchSize?: number;
 }
 
@@ -162,13 +160,13 @@ async function getProjectDetails(
 }
 
 async function seedData(options: SeedOptions) {
-  const { apiKey, count, target, batchSize = 100 } = options;
+  const { apiKey, count, batchSize = 100 } = options;
 
   console.log('🔍 Fetching project details...');
   const { projectId, orgId, logFullUrl } = await getProjectDetails(apiKey);
   console.log(`✅ Found project: ${projectId} (org: ${orgId})`);
 
-  console.log(`\n🌱 Starting to seed ${count} logs to ${target}...\n`);
+  console.log(`\n🌱 Starting to seed ${count} logs to tinybird...\n`);
 
   const startTime = Date.now();
   let successCount = 0;
@@ -191,19 +189,9 @@ async function seedData(options: SeedOptions) {
     }
 
     try {
-      // Ingest to appropriate target(s)
-      if (target === 'tinybird' || target === 'both') {
-        for (const event of batch) {
-          await ingestToTinybird(event);
-        }
-      }
-
-      if (target === 'cloudflare' || target === 'both') {
-        const r2Events = batch.map((event) => ({
-          ...event,
-          timestamp: new Date(event.timestamp).getTime(),
-        }));
-        await ingestToCloudflareR2(r2Events);
+      // Ingest to tinybird
+      for (const event of batch) {
+        await ingestToTinybird(event);
       }
 
       successCount += currentBatchSize;
@@ -228,10 +216,9 @@ async function seedData(options: SeedOptions) {
   console.log(`   - Failed: ${errorCount}`);
   console.log(`   - Duration: ${duration}s`);
   console.log(`   - Rate: ${logsPerSecond} logs/sec`);
-  console.log(`   - Target: ${target}`);
 }
 
-// CLI Interface
+// CLI
 async function main() {
   const args = process.argv.slice(2);
 
@@ -247,20 +234,18 @@ Required:
   --count=<number>        Number of logs to generate
 
 Optional:
-  --target=<target>       Target system (tinybird|cloudflare|both) [default: both]
   --batch-size=<number>   Batch size for ingestion [default: 100]
   --help, -h              Show this help message
 
 Examples:
   bun run seed --api-key=pw_abc123 --count=1000
-  bun run seed --api-key=pw_abc123 --count=5000 --target=tinybird
-  bun run seed --api-key=pw_abc123 --count=10000 --target=both --batch-size=50
+  bun run seed --api-key=pw_abc123 --count=5000
+  bun run seed --api-key=pw_abc123 --count=10000 --batch-size=50
 
 Environment Variables Required:
   DATABASE_URL            PostgreSQL connection string
-  TINYBIRD_URL           Tinybird ingestion URL (if target includes tinybird)
-  TINYBIRD_TOKEN         Tinybird auth token (if target includes tinybird)
-  CLOUDFLARE_R2_PIPELINE_URL  Cloudflare R2 pipeline URL (if target includes cloudflare)
+  TINYBIRD_URL           Tinybird ingestion URL
+  TINYBIRD_TOKEN         Tinybird auth token
     `);
     process.exit(0);
   }
@@ -268,7 +253,6 @@ Environment Variables Required:
   // Parse arguments
   const apiKeyArg = args.find((arg) => arg.startsWith('--api-key='));
   const countArg = args.find((arg) => arg.startsWith('--count='));
-  const targetArg = args.find((arg) => arg.startsWith('--target='));
   const batchSizeArg = args.find((arg) => arg.startsWith('--batch-size='));
 
   if (!apiKeyArg || !countArg) {
@@ -279,16 +263,10 @@ Environment Variables Required:
 
   const apiKey = apiKeyArg.split('=')[1];
   const count = parseInt(countArg.split('=')[1], 10);
-  const target = (targetArg?.split('=')[1] || 'both') as 'tinybird' | 'cloudflare' | 'both';
   const batchSize = batchSizeArg ? parseInt(batchSizeArg.split('=')[1], 10) : 100;
 
   if (isNaN(count) || count <= 0) {
     console.error('❌ Error: --count must be a positive number');
-    process.exit(1);
-  }
-
-  if (!['tinybird', 'cloudflare', 'both'].includes(target)) {
-    console.error('❌ Error: --target must be one of: tinybird, cloudflare, both');
     process.exit(1);
   }
 
@@ -298,7 +276,7 @@ Environment Variables Required:
   }
 
   try {
-    await seedData({ apiKey, count, target, batchSize });
+    await seedData({ apiKey, count, batchSize });
   } catch (error) {
     console.error('\n❌ Seeding failed:', error);
     process.exit(1);

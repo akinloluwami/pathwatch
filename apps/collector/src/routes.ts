@@ -1,9 +1,8 @@
 import { z } from 'zod';
 import { EventSchema, SpanSchema, TraceSchema } from './schemas';
 import { getProjectByApiKey } from './database';
-import { enrichEvent, transformForR2 } from './transform';
+import { enrichEvent } from './transform';
 import { enrichSpan, enrichTrace, aggregateSpansToTrace } from './tracing-transform';
-import { ingestToCloudflareR2 } from './cloudflare-ingest';
 import { ingestToTinybird } from './tinybird-ingest';
 import { ingestSpansToTinybird, ingestTracesToTinybird } from './tracing-ingest';
 
@@ -22,12 +21,7 @@ export async function handleIngest({ body, set }: any) {
 
     const enriched = parsed.map((e) => enrichEvent(e, project_id, org_id, log_full_url));
 
-    const r2Data = enriched.map(transformForR2);
-
-    await Promise.all([
-      ingestToCloudflareR2(r2Data),
-      ...enriched.map((event) => ingestToTinybird(event)),
-    ]);
+    await Promise.all(enriched.map((event) => ingestToTinybird(event)));
 
     return { success: true, count: enriched.length };
   } catch (err: any) {

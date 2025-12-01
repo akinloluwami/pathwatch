@@ -46,23 +46,3 @@ export function enrichEvent(
       : null,
   };
 }
-
-export function transformForR2(event: EnrichedEvent) {
-  return {
-    id: event.id,
-    timestamp: new Date(event.timestamp).getTime(),
-    org_id: event.org_id,
-    project_id: event.project_id,
-    method: event.method,
-    path: event.path,
-    url: event.url,
-    host: event.host,
-    status: event.status,
-    latency_ms: event.latency_ms,
-    req_size: event.req_size,
-    res_size: event.res_size,
-    ip: event.ip,
-    user_agent: event.user_agent,
-    body: event.body,
-  };
-}

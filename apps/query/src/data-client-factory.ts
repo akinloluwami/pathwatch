@@ -1,6 +1,5 @@
 import { TinybirdClient } from './tinybird-client';
-import { CloudflareClient } from './cloudflare-client';
-import { config, DataSource } from './config';
+import { config } from './config';
 
 export interface DataClient {
   query<T = any>(queryName: string, params?: Record<string, any>): Promise<{ data: T[] }>;
@@ -11,20 +10,9 @@ class DataClientFactory {
 
   static getClient(): DataClient {
     if (!this.instance) {
-      this.instance = this.createClient(config.dataSource);
+      this.instance = new TinybirdClient(config.tbToken);
     }
     return this.instance;
-  }
-
-  private static createClient(source: DataSource): DataClient {
-    switch (source) {
-      case 'tinybird':
-        return new TinybirdClient(config.tbToken);
-      case 'cloudflare':
-        return new CloudflareClient(config.r2ApiToken, config.r2WarehouseName);
-      default:
-        throw new Error(`Unknown data source: ${source}`);
-    }
   }
 
   static reset(): void {
